@@ -1,8 +1,8 @@
-// src/pages/Dash.jsx
+// src/pages/Orders.jsx
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 
-export default function Dash() {
+export default function Orders() {
   return (
     <Box
       sx={{
@@ -14,7 +14,7 @@ export default function Dash() {
       }}
     >
       <Typography variant="h4" gutterBottom>
-        Dashboard
+        Orders Management
       </Typography>
     </Box>
   );

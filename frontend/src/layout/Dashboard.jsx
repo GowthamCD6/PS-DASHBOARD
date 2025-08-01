@@ -14,6 +14,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import {
   Account,
@@ -30,8 +31,8 @@ const NAVIGATION = [
     title: 'Main items',
   },
   {
-    segment: 'dashboard/dash',
-    title: 'Spreadsheet',
+    segment: 'dashboard',
+    title: 'Dashboard',
     icon: <DashboardIcon />,
   },
   {
@@ -65,7 +66,7 @@ function CustomToolbarActions() {
   );
 }
 
-function DemoPageContent({ pathname }) {
+function DemoPageContent({ children }) {
   return (
     <Box
       sx={{
@@ -74,15 +75,16 @@ function DemoPageContent({ pathname }) {
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
+        width: '100%',
       }}
     >
-      <Typography>Dashboard content for {pathname}</Typography>
+      {children}
     </Box>
   );
 }
 
 DemoPageContent.propTypes = {
-  pathname: PropTypes.string.isRequired,
+  children: PropTypes.node,
 };
 
 function AccountSidebarPreview(props) {
@@ -250,17 +252,17 @@ const demoSession = {
 };
 
 function DashboardLayoutAccountSidebar(props) {
-  const { window } = props;
-
-  const [pathname, setPathname] = React.useState('/dashboard');
+  const { window, children } = props;
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const router = React.useMemo(() => {
     return {
-      pathname,
-      searchParams: new URLSearchParams(),
-      navigate: (path) => setPathname(String(path)),
+      pathname: location.pathname,
+      searchParams: new URLSearchParams(location.search),
+      navigate: (path) => navigate(String(path)),
     };
-  }, [pathname]);
+  }, [location.pathname, location.search, navigate]);
 
   // Remove this const when copying and pasting into your project.
   const demoWindow = window !== undefined ? window() : undefined;
@@ -295,7 +297,9 @@ function DashboardLayoutAccountSidebar(props) {
             sidebarFooter: SidebarFooterAccount,
           }}
         >
-          <DemoPageContent pathname={pathname} />
+          <DemoPageContent>
+            {children}
+          </DemoPageContent>
         </DashboardLayout>
         {/* preview-end */}
       </AppProvider>
@@ -309,6 +313,7 @@ DashboardLayoutAccountSidebar.propTypes = {
    * Remove this when copying and pasting into your project.
    */
   window: PropTypes.func,
+  children: PropTypes.node,
 };
 
 export default DashboardLayoutAccountSidebar;
