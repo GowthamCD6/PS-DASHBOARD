@@ -1,3 +1,5 @@
+// COMMENTED OUT - Login functionality temporarily disabled
+/*
 import React from "react";
 
 //for integrating with backend
@@ -125,8 +127,7 @@ const Login = () => {
           <TextField id="password" label="Password" type="password" />
           <Stack justifyContent="flex-start" width="45vw" mb="7px">
             <FormGroup>
-              <FormControlLabel control={<Checkbox />} label="Remember me" />{" "}
-              {/* remeber me logic is not implemented yet*/}
+              <FormControlLabel control={<Checkbox />} label="Remember me" />
             </FormGroup>
           </Stack>
         </Box>
@@ -149,7 +150,6 @@ const Login = () => {
 
         <Divider sx={{ my: 2, fontSize: "14px", color: "#888" }}>OR</Divider>
 
-        {/* Firebase Google Auth Button */}
         <Button
           onClick={handleGoogleLogin}
           variant="outlined"
@@ -182,6 +182,20 @@ const Login = () => {
 
         <h4 className="last">Sign in with your BIT account</h4>
       </Card>
+    </div>
+  );
+};
+
+export default Login;
+*/
+
+// Temporary placeholder component - returns a simple div
+import React from "react";
+
+const Login = () => {
+  return (
+    <div>
+      <h2>Login ni beta</h2>
     </div>
   );
 };

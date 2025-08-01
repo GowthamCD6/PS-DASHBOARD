@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import Dashboard from './layout/Dashboard';
 import Dash from './pages/dash';
 import Orders from './pages/orders';
@@ -9,15 +9,14 @@ import Login from './components/Login/Login';
 const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  // const context = useContext(AuthContext);
+  // if (!context) {
+  //   throw new Error('useAuth must be used within an AuthProvider');
+  // }
+  return { isAuthenticated: true, user: null, login: () => {}, logout: () => {}, setIsAuthenticated: () => {} };
 };
-cl
 const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [user, setUser] = useState(null);
 
   const login = (userData) => {
@@ -38,10 +37,14 @@ const AuthProvider = ({ children }) => {
 };
 
 const PrivateRoute = ({ element, isAuthenticated }) => {
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  } 
+  // Idha set pannadhukku aprm delete panniru
   return element;
+  
+  // Original authentication logic (commented out)
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" replace />;
+  // } 
+  // return element;
 };
 
 function App() {
