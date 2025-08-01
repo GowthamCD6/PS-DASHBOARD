@@ -15,7 +15,7 @@ export const useAuth = () => {
   }
   return context;
 };
-
+cl
 const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
