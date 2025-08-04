@@ -5,13 +5,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Log requests
+// log requests
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.url}`, req.body);
   next();
 });
 
-app.use('/api', require('./routes/auth'));
+// Routes
+app.use('/api/students', require('./routes/student'));
 
+// DB connection
+require('./config/db');
 
-module.exports = app;
+module.exports = app;
