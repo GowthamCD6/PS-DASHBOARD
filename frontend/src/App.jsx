@@ -4,6 +4,7 @@ import Dashboard from './layout/Dashboard';
 import Dash from './pages/dash';
 import Orders from './pages/orders';
 import Login from './components/Login/Login';
+import StudentDashboard from './pages/studentdash';
 
 // Create Authentication Context
 const AuthContext = createContext();
@@ -80,11 +81,11 @@ function DashboardRoutes() {
   return (
     <Dashboard>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dash />} />
         <Route path="/orders" element={<Orders />} />
-        {/* <Route path="/student_dashboard" element={<StudentDashboard />} /> */}
-        {/* Add more routes as needed */}
+        <Route path="/student_dashboard" element={<StudentDashboard />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Dashboard>
   );

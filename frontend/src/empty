@@ -1,0 +1,731 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Typography,
+  Chip,
+  IconButton,
+  Avatar,
+  Card,
+  CardContent,
+  Grid,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Badge,
+  Divider,
+  TablePagination,
+  Skeleton
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  FilterList as FilterListIcon,
+  Search as SearchIcon,
+  School as SchoolIcon,
+  Business as BusinessIcon,
+  Person as PersonIcon,
+  Assignment as AssignmentIcon,
+  Mail as MailIcon,
+  Phone as PhoneIcon,
+  Info as InfoIcon
+} from '@mui/icons-material';
+
+const MentorAssignmentSystem = () => {
+  // Students data
+  const [students, setStudents] = useState([
+    {
+      id: 1,
+      name: 'John Doe',
+      regNo: '20CS001',
+      department: 'CSE',
+      year: 'III',
+      mentors: [
+        { id: 1, name: 'Dr. Smith', role: 'Faculty Mentor' },
+        { id: 2, name: 'Prof. Johnson', role: 'Industry Mentor' }
+      ]
+    },
+    {
+      id: 2,
+      name: 'Jane Smith',
+      regNo: '20CS002',
+      department: 'CSE',
+      year: 'III',
+      mentors: [
+        { id: 1, name: 'Dr. Smith', role: 'Faculty Mentor' }
+      ]
+    }
+  ]);
+
+  // Mentors data
+  const [mentors, setMentors] = useState([
+    {
+      id: 1,
+      name: 'Dr. Smith',
+      department: 'CSE',
+      role: 'Faculty Mentor',
+      expertise: ['Web Development', 'AI/ML'],
+      email: 'smith@example.com',
+      phone: '1234567890'
+    },
+    {
+      id: 2,
+      name: 'Prof. Johnson',
+      department: 'CSE',
+      role: 'Industry Mentor',
+      expertise: ['Cloud Computing', 'DevOps'],
+      email: 'johnson@example.com',
+      phone: '0987654321'
+    }
+  ]);
+
+  // States
+  const [openAssignDialog, setOpenAssignDialog] = useState(false);
+  const [openMentorDialog, setOpenMentorDialog] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedMentor, setSelectedMentor] = useState(null);
+  const [mentorRole, setMentorRole] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalMentors: 0,
+    averageMentorsPerStudent: 0,
+    departmentStats: {}
+  });
+
+  // Calculate statistics
+  useEffect(() => {
+    const calculateStats = () => {
+      const totalStudents = students.length;
+      const totalMentors = mentors.length;
+      const totalMentorAssignments = students.reduce((acc, student) => acc + student.mentors.length, 0);
+      const deptStats = students.reduce((acc, student) => {
+        acc[student.department] = (acc[student.department] || 0) + 1;
+        return acc;
+      }, {});
+
+      setStats({
+        totalStudents,
+        totalMentors,
+        averageMentorsPerStudent: totalStudents ? (totalMentorAssignments / totalStudents).toFixed(1) : 0,
+        departmentStats: deptStats
+      });
+    };
+
+    calculateStats();
+    // Simulate loading
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, [students, mentors]);
+
+  // Handle pagination
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Show notification
+  const showNotification = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  // Handle mentor info dialog
+  const handleOpenMentorDialog = (mentor) => {
+    setSelectedMentor(mentor);
+    setOpenMentorDialog(true);
+  };
+
+  // Filters
+  const [filters, setFilters] = useState({
+    department: '',
+    year: '',
+    mentorId: '',
+    searchQuery: ''
+  });
+
+  // Handle opening assign dialog
+  const handleOpenAssignDialog = (student) => {
+    setSelectedStudent(student);
+    setOpenAssignDialog(true);
+  };
+
+  // Handle assigning mentor to student
+  const handleAssignMentor = () => {
+    if (selectedStudent && selectedMentor) {
+      setStudents(prevStudents => 
+        prevStudents.map(student => 
+          student.id === selectedStudent.id
+            ? {
+                ...student,
+                mentors: [...student.mentors, { 
+                  id: selectedMentor.id,
+                  name: selectedMentor.name,
+                  role: mentorRole
+                }]
+              }
+            : student
+        )
+      );
+      setOpenAssignDialog(false);
+      setSelectedStudent(null);
+      setSelectedMentor(null);
+      setMentorRole('');
+    }
+  };
+
+  // Handle removing mentor from student
+  const handleRemoveMentor = (studentId, mentorId) => {
+    setStudents(prevStudents =>
+      prevStudents.map(student =>
+        student.id === studentId
+          ? {
+              ...student,
+              mentors: student.mentors.filter(mentor => mentor.id !== mentorId)
+            }
+          : student
+      )
+    );
+  };
+
+  // Filter students based on current filters
+  const filteredStudents = students.filter(student => {
+    return (
+      (!filters.department || student.department === filters.department) &&
+      (!filters.year || student.year === filters.year) &&
+      (!filters.mentorId || student.mentors.some(m => m.id === Number(filters.mentorId))) &&
+      (!filters.searchQuery || 
+        student.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+        student.regNo.toLowerCase().includes(filters.searchQuery.toLowerCase()))
+    );
+  });
+
+  return (
+    <Box sx={{ 
+      p: { xs: 2, sm: 3 },
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh',
+      width:'100%',
+    }}>
+      <Card 
+        elevation={0}
+        sx={{ 
+          p: { xs: 2, sm: 3 },
+          mb: 3,
+          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+          color: 'white',
+          borderRadius: '12px'
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontWeight: 600,
+            fontSize: { xs: '1.5rem', sm: '2rem' }
+          }}
+        >
+          Mentor Assignment System
+        </Typography>
+        <Typography 
+          variant="subtitle1" 
+          sx={{ 
+            mt: 1,
+            opacity: 0.9
+          }}
+        >
+          Manage and track mentor assignments for students
+        </Typography>
+      </Card>
+
+      {/* Statistics Cards */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ borderRadius: '12px', height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ backgroundColor: 'primary.light', mr: 2 }}>
+                  <PersonIcon />
+                </Avatar>
+                <Typography variant="h6">Students</Typography>
+              </Box>
+              {loading ? (
+                <Skeleton variant="text" width="60%" />
+              ) : (
+                <Typography variant="h4" sx={{ fontWeight: 500 }}>
+                  {stats.totalStudents}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ borderRadius: '12px', height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ backgroundColor: 'success.light', mr: 2 }}>
+                  <SchoolIcon />
+                </Avatar>
+                <Typography variant="h6">Mentors</Typography>
+              </Box>
+              {loading ? (
+                <Skeleton variant="text" width="60%" />
+              ) : (
+                <Typography variant="h4" sx={{ fontWeight: 500 }}>
+                  {stats.totalMentors}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ borderRadius: '12px', height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ backgroundColor: 'warning.light', mr: 2 }}>
+                  <AssignmentIcon />
+                </Avatar>
+                <Typography variant="h6">Avg. Mentors</Typography>
+              </Box>
+              {loading ? (
+                <Skeleton variant="text" width="60%" />
+              ) : (
+                <Typography variant="h4" sx={{ fontWeight: 500 }}>
+                  {stats.averageMentorsPerStudent}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ borderRadius: '12px', height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ backgroundColor: 'info.light', mr: 2 }}>
+                  <BusinessIcon />
+                </Avatar>
+                <Typography variant="h6">Departments</Typography>
+              </Box>
+              {loading ? (
+                <Skeleton variant="text" width="60%" />
+              ) : (
+                <Typography variant="h4" sx={{ fontWeight: 500 }}>
+                  {Object.keys(stats.departmentStats).length}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Filters */}
+      <Card 
+        sx={{ 
+          mb: 3,
+          p: { xs: 2, sm: 3 },
+          borderRadius: '12px'
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          sx={{ mb: 2, fontWeight: 500 }}
+        >
+          Filters
+        </Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          <TextField
+          label="Search students..."
+          size="small"
+          value={filters.searchQuery}
+          onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
+          sx={{ 
+            backgroundColor: 'white',
+            minWidth: { xs: '100%', sm: 220 }
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+          }}
+        />
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }}>
+          <InputLabel>Department</InputLabel>
+          <Select
+            value={filters.department}
+            label="Department"
+            onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value }))}
+            sx={{ backgroundColor: 'white' }}
+          >
+            <MenuItem value="">All Departments</MenuItem>
+            <MenuItem value="CSE">CSE</MenuItem>
+            <MenuItem value="ECE">ECE</MenuItem>
+            <MenuItem value="IT">IT</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 120 } }}>
+          <InputLabel>Year</InputLabel>
+          <Select
+            value={filters.year}
+            label="Year"
+            onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
+            sx={{ backgroundColor: 'white' }}
+          >
+            <MenuItem value="">All Years</MenuItem>
+            <MenuItem value="I">I Year</MenuItem>
+            <MenuItem value="II">II Year</MenuItem>
+            <MenuItem value="III">III Year</MenuItem>
+            <MenuItem value="IV">IV Year</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
+          <InputLabel>Mentor</InputLabel>
+          <Select
+            value={filters.mentorId}
+            label="Mentor"
+            onChange={(e) => setFilters(prev => ({ ...prev, mentorId: e.target.value }))}
+            sx={{ backgroundColor: 'white' }}
+          >
+            <MenuItem value="">All Mentors</MenuItem>
+            {mentors.map(mentor => (
+              <MenuItem key={mentor.id} value={mentor.id}>{mentor.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        </Box>
+      </Card>
+
+      {/* Students Table */}
+      <Card sx={{ borderRadius: '12px', overflow: 'hidden' }}>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 500 }}>Students List</Typography>
+          <Typography variant="subtitle2" color="text.secondary">
+            {loading ? (
+              <Skeleton width={100} />
+            ) : (
+              `${filteredStudents.length} students found`
+            )}
+          </Typography>
+        </Box>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                <TableCell sx={{ fontWeight: 600 }}>Reg No</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Year</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Assigned Mentors</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+          <TableBody>
+            {loading ? (
+              [...Array(5)].map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton width={100} /></TableCell>
+                </TableRow>
+              ))
+            ) : (
+              filteredStudents
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((student) => (
+                <TableRow 
+                  key={student.id}
+                  sx={{ '&:hover': { backgroundColor: '#f8f9fa' } }}
+                >
+                  <TableCell sx={{ color: 'text.secondary' }}>{student.regNo}</TableCell>
+                  <TableCell sx={{ fontWeight: 500 }}>{student.name}</TableCell>
+                  <TableCell>{student.department}</TableCell>
+                  <TableCell>{student.year}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {student.mentors.map((mentor) => (
+                        <Chip
+                          key={mentor.id}
+                          label={`${mentor.name} (${mentor.role})`}
+                          onDelete={() => {
+                            handleRemoveMentor(student.id, mentor.id);
+                            showNotification('Mentor removed successfully');
+                          }}
+                          onClick={() => handleOpenMentorDialog(mentors.find(m => m.id === mentor.id))}
+                          color="primary"
+                          variant="outlined"
+                          sx={{ 
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            '& .MuiChip-deleteIcon': {
+                              color: 'primary.main',
+                              '&:hover': { color: 'error.main' }
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={() => handleOpenAssignDialog(student)}
+                      sx={{ 
+                        boxShadow: 'none',
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        '&:hover': { boxShadow: 'none' }
+                      }}
+                    >
+                      Assign Mentor
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredStudents.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+      </Card>
+
+      {/* Assign Mentor Dialog */}
+      <Dialog 
+        open={openAssignDialog} 
+        onClose={() => setOpenAssignDialog(false)}
+        PaperProps={{
+          sx: { borderRadius: '12px' }
+        }}
+      >
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          pb: 2
+        }}>
+          Assign Mentor to {selectedStudent?.name}
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: { sm: '400px' } }}>
+            <FormControl fullWidth>
+              <InputLabel>Select Mentor</InputLabel>
+              <Select
+                value={selectedMentor ? selectedMentor.id : ''}
+                label="Select Mentor"
+                onChange={(e) => setSelectedMentor(mentors.find(m => m.id === e.target.value))}
+                sx={{ borderRadius: '8px' }}
+              >
+                {mentors
+                  .filter(mentor => !selectedStudent?.mentors.some(m => m.id === mentor.id))
+                  .map(mentor => (
+                    <MenuItem key={mentor.id} value={mentor.id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Avatar 
+                          sx={{ 
+                            width: 32, 
+                            height: 32, 
+                            mr: 1,
+                            backgroundColor: 'primary.main'
+                          }}
+                        >
+                          {mentor.name[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle2">{mentor.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {mentor.department}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Mentor Role</InputLabel>
+              <Select
+                value={mentorRole}
+                label="Mentor Role"
+                onChange={(e) => setMentorRole(e.target.value)}
+                sx={{ borderRadius: '8px' }}
+              >
+                <MenuItem value="Faculty Mentor">Faculty Mentor</MenuItem>
+                <MenuItem value="Industry Mentor">Industry Mentor</MenuItem>
+                <MenuItem value="Project Guide">Project Guide</MenuItem>
+                <MenuItem value="Technical Advisor">Technical Advisor</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ 
+          p: 3,
+          borderTop: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Button 
+            onClick={() => setOpenAssignDialog(false)}
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none'
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleAssignMentor}
+            variant="contained"
+            disabled={!selectedMentor || !mentorRole}
+            sx={{ 
+              borderRadius: '8px',
+              boxShadow: 'none',
+              textTransform: 'none',
+              px: 3,
+              '&:hover': { boxShadow: 'none' }
+            }}
+          >
+            Assign
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Mentor Info Dialog */}
+      <Dialog 
+        open={openMentorDialog} 
+        onClose={() => setOpenMentorDialog(false)}
+        PaperProps={{
+          sx: { borderRadius: '12px' }
+        }}
+      >
+        <DialogTitle sx={{ 
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          pb: 2
+        }}>
+          Mentor Profile
+        </DialogTitle>
+        {selectedMentor && (
+          <DialogContent sx={{ mt: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar 
+                  sx={{ 
+                    width: 64, 
+                    height: 64,
+                    backgroundColor: 'primary.main'
+                  }}
+                >
+                  {selectedMentor.name[0]}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6">{selectedMentor.name}</Typography>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {selectedMentor.department} • {selectedMentor.role}
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Divider />
+              
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Contact Information
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MailIcon color="action" fontSize="small" />
+                    <Typography>{selectedMentor.email}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PhoneIcon color="action" fontSize="small" />
+                    <Typography>{selectedMentor.phone}</Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Areas of Expertise
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {selectedMentor.expertise.map((skill, index) => (
+                    <Chip
+                      key={index}
+                      label={skill}
+                      size="small"
+                      sx={{ borderRadius: '8px' }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+          </DialogContent>
+        )}
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={() => setOpenMentorDialog(false)}
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none'
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%', borderRadius: '8px' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+};
+
+export default MentorAssignmentSystem;
