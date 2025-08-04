@@ -38,13 +38,13 @@ const AuthProvider = ({ children }) => {
 
 const PrivateRoute = ({ element, isAuthenticated }) => {
   // Idha set pannadhukku aprm delete panniru
-  return element;
+  // return element;
   
   // Original authentication logic (commented out)
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/login" replace />;
-  // } 
-  // return element;
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  } 
+  return element;
 };
 
 function App() {
@@ -62,7 +62,7 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Login />} />
       <Route 
         path="/*" 
         element={
@@ -80,9 +80,11 @@ function DashboardRoutes() {
   return (
     <Dashboard>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/dashboard" element={<Dash />} />
         <Route path="/orders" element={<Orders />} />
+        {/* <Route path="/student_dashboard" element={<StudentDashboard />} /> */}
+        {/* Add more routes as needed */}
       </Routes>
     </Dashboard>
   );

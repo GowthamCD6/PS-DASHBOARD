@@ -11,11 +11,11 @@ import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import { createTheme } from '@mui/material/styles';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import {
   Account,
   AccountPreview,
@@ -24,6 +24,8 @@ import {
 } from '@toolpad/core/Account';
 
 import { DemoProvider } from '@toolpad/core/internal';
+// import StudentSkillsTable from '../pages/dash';
+// import StudentDashboard from '../pages/student_dashboard';
 
 const NAVIGATION = [
   {
@@ -38,8 +40,13 @@ const NAVIGATION = [
   {
     segment: 'orders',
     title: 'Orders',
-    icon: <ShoppingCartIcon />,
+    icon: <SupervisedUserCircleIcon />,
   },
+  // {
+  //   segment:'student_dashboard',
+  //   title: 'Student dashboard',
+  //   icon: <ManageAccountsIcon/>,
+  // }
 ];
 
 const demoTheme = createTheme({

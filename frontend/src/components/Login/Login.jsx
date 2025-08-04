@@ -1,5 +1,4 @@
-// COMMENTED OUT - Login functionality temporarily disabled
-/*
+
 import React from "react";
 
 //for integrating with backend
@@ -22,7 +21,8 @@ import {
 } from "@mui/material";
 
 //components for firebase auth
-import { auth, provider, signInWithPopup } from "./firebase";
+import { auth, provider } from "./firebase";
+import { signInWithPopup } from "firebase/auth";
 
 //assets
 import logo from "../../assets/Bit-logo.png";
@@ -187,17 +187,6 @@ const Login = () => {
 };
 
 export default Login;
-*/
 
 // Temporary placeholder component - returns a simple div
-import React from "react";
 
-const Login = () => {
-  return (
-    <div>
-      <h2>Login ni beta</h2>
-    </div>
-  );
-};
-
-export default Login;
