@@ -60,48 +60,45 @@ const StudentSkillsTable = () => {
       color: "#1976d2",
     },
     { id: "skill2", name: "Skill 2", selectedSkill: "React", color: "#2e7d32" },
+    { id: "skill3", name: "Skill 3", selectedSkill: "", color: "#d32f2f" },
   ]);
 
   const [students, setStudents] = useState([
     {
       id: 1,
       name: "Ram Kumar",
-      regNo: "737642",
+      regNo: "7376242CSE163",
       department: "CSE",
       totalLevels: 10,
       completedLevels: 7,
-      skillLevels: { skill1: 10, skill2: 5 },
-      avatar: "👨‍💻",
+      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
     },
     {
       id: 2,
       name: "John Doe",
-      regNo: "737643",
+      regNo: "7376243ECE164",
       department: "ECE",
       totalLevels: 8,
       completedLevels: 6,
-      skillLevels: { skill1: 10, skill2: 5 },
-      avatar: "👨‍🎓",
+      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
     },
     {
       id: 3,
       name: "Jane Smith",
-      regNo: "737644",
+      regNo: "7376244IT165",
       department: "IT",
       totalLevels: 12,
       completedLevels: 9,
-      skillLevels: { skill1: 10, skill2: 5 },
-      avatar: "👩‍💻",
+      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
     },
     {
       id: 4,
       name: "Alice Johnson",
-      regNo: "737645",
+      regNo: "7376245CSE166",
       department: "CSE",
       totalLevels: 15,
       completedLevels: 12,
-      skillLevels: { skill1: 10, skill2: 5 },
-      avatar: "👩‍🔬",
+      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
     },
   ]);
 
@@ -135,10 +132,10 @@ const StudentSkillsTable = () => {
     "Git",
   ];
 
-  // const skillColors = [
-  //   '#1976d2', '#2e7d32', '#d32f2f', '#7b1fa2', '#f57c00',
-  //   '#0288d1', '#388e3c', '#f44336', '#9c27b0', '#ff9800'
-  // ];
+  const skillColors = [
+    '#1976d2', '#2e7d32', '#d32f2f', '#7b1fa2', '#f57c00',
+    '#0288d1', '#388e3c', '#f44336', '#9c27b0', '#ff9800'
+  ];
 
   // Optimized filtering with useMemo
   const filteredStudents = useMemo(() => {
@@ -181,7 +178,7 @@ const StudentSkillsTable = () => {
         id: `skill${nextSkillNumber}`,
         name: `Skill ${nextSkillNumber}`,
         selectedSkill: "",
-        // color: skillColors[nextSkillNumber % skillColors.length]
+        color: skillColors[nextSkillNumber % skillColors.length]
       };
       setSkillColumns([...skillColumns, newSkill]);
       setIsLoading(false);
@@ -247,8 +244,8 @@ const StudentSkillsTable = () => {
   };
 
   const clearAllFilters = () => {
-    setColumnFilters({ name: "", regNo: "" }); // department removed
-    setFilters({ role: "", year: "", department: "" }); // department added here
+    setColumnFilters({ name: "", regNo: "", department: "" });
+    setFilters({ role: "", year: "" });
   };
 
   // Enhanced Level Box with progress indicator
@@ -276,25 +273,25 @@ const StudentSkillsTable = () => {
             overflow: "hidden",
             bgcolor:
               type === "total"
-                ? "primary.50"
+                ? "grey.100"
                 : type === "completed"
-                  ? "success.50"
+                  ? "grey.100"
                   : type === "skill"
                     ? "info.50"
                     : "grey.100",
             borderColor:
               type === "total"
-                ? "primary.300"
+                ? "grey.400"
                 : type === "completed"
-                  ? "success.300"
+                  ? "grey.400"
                   : type === "skill"
                     ? "info.300"
                     : "grey.300",
             color:
               type === "total"
-                ? "primary.800"
+                ? "grey.700"
                 : type === "completed"
-                  ? "success.800"
+                  ? "grey.700"
                   : type === "skill"
                     ? "info.800"
                     : "grey.800",
@@ -303,9 +300,9 @@ const StudentSkillsTable = () => {
               boxShadow: 3,
               borderColor:
                 type === "total"
-                  ? "primary.500"
+                  ? "grey.600"
                   : type === "completed"
-                    ? "success.500"
+                    ? "grey.600"
                     : type === "skill"
                       ? "info.500"
                       : "grey.500",
@@ -351,11 +348,12 @@ const StudentSkillsTable = () => {
       inputProps={{
         min: 0,
         max: 100,
-        style: { textAlign: "center", fontWeight: "bold" },
+        style: { textAlign: "center", fontWeight: "bold", height: "20px" },
       }}
       sx={{
-        width: 70,
+        width: 80,
         "& .MuiOutlinedInput-root": {
+          height: 36,
           borderRadius: 2,
           "& input": {
             color:
@@ -364,6 +362,7 @@ const StudentSkillsTable = () => {
                 : value >= 60
                   ? "warning.main"
                   : "error.main",
+            padding: "8px 12px",
           },
           "&:hover fieldset": {
             borderColor: skillColor,
@@ -382,15 +381,14 @@ const StudentSkillsTable = () => {
   return (
     <Box
       sx={{
-        p: 3,
-        bgcolor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        minHeight: "100vh",
+        p: { xs: 1, sm: 2 },
         width: "100%",
+        marginTop:-3,
       }}
     >
       <Paper
         sx={{
-          maxWidth: "100%",
+          width: "100%",
           mx: "auto",
           borderRadius: 3,
           boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
@@ -411,19 +409,41 @@ const StudentSkillsTable = () => {
               justifyContent: "space-between",
               alignItems: "flex-start",
               mb: 3,
+              flexWrap: { xs: "wrap", md: "nowrap" },
+              gap: { xs: 2, md: 0 },
             }}
           >
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontWeight: "bold", 
+                  mb: 1,
+                  fontSize: { xs: "1.5rem", sm: "2rem" }
+                }}
+              >
                 Student Skills Dashboard
               </Typography>
-              <Typography variant="subtitle1" sx={{ opacity: 0.9 }}>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  opacity: 0.9,
+                  fontSize: { xs: "0.875rem", sm: "1rem" }
+                }}
+              >
                 Track and manage student progress across different skills
               </Typography>
             </Box>
 
             {/* Stats Cards */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box 
+              sx={{ 
+                display: "flex", 
+                gap: 2,
+                flexWrap: "wrap",
+                justifyContent: { xs: "center", md: "flex-end" }
+              }}
+            >
               <Card
                 sx={{
                   minWidth: 120,
@@ -472,13 +492,59 @@ const StudentSkillsTable = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, role: e.target.value }))
                 }
+                renderValue={(value) => (
+                  <span style={{ color: 'white' }}>
+                    {value === "" ? "" : value === "HOD" ? "HOD" : value === "faculty" ? "Faculty" : "Student"}
+                  </span>
+                )}
                 sx={{
-                  color: "white",
+                  color: "white !important",
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255,255,255,0.3)",
                   },
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255,255,255,0.5)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.8)",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white !important",
+                  },
+                  "& .MuiSelect-select": {
+                    color: "white !important",
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "rgba(255,255,255,0.7)",
+                  },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: "white",
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: 2,
+                      mt: 1,
+                      "& .MuiMenuItem-root": {
+                        color: "text.primary",
+                        "&:hover": {
+                          bgcolor: "rgba(102, 126, 234, 0.1)",
+                          color: "#667eea",
+                        },
+                        "&.Mui-selected": {
+                          bgcolor: "rgba(102, 126, 234, 0.2)",
+                          color: "#667eea",
+                          fontWeight: "bold",
+                          "&:hover": {
+                            bgcolor: "rgba(102, 126, 234, 0.3)",
+                            color: "#667eea",
+                          },
+                        },
+                      },
+                    },
                   },
                 }}
               >
@@ -497,13 +563,59 @@ const StudentSkillsTable = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, year: e.target.value }))
                 }
+                renderValue={(value) => (
+                  <span style={{ color: 'white' }}>
+                    {value === "" ? "" : `${value} Year`}
+                  </span>
+                )}
                 sx={{
-                  color: "white",
+                  color: "white !important",
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255,255,255,0.3)",
                   },
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255,255,255,0.5)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.8)",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white !important",
+                  },
+                  "& .MuiSelect-select": {
+                    color: "white !important",
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "rgba(255,255,255,0.7)",
+                  },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: "white",
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: 2,
+                      mt: 1,
+                      "& .MuiMenuItem-root": {
+                        color: "text.primary",
+                        "&:hover": {
+                          bgcolor: "rgba(102, 126, 234, 0.1)",
+                          color: "#667eea",
+                        },
+                        "&.Mui-selected": {
+                          bgcolor: "rgba(102, 126, 234, 0.2)",
+                          color: "#667eea",
+                          fontWeight: "bold",
+                          "&:hover": {
+                            bgcolor: "rgba(102, 126, 234, 0.3)",
+                            color: "#667eea",
+                          },
+                        },
+                      },
+                    },
                   },
                 }}
               >
@@ -526,13 +638,59 @@ const StudentSkillsTable = () => {
                     department: e.target.value,
                   }))
                 }
+                renderValue={(value) => (
+                  <span style={{ color: 'white' }}>
+                    {value === "" ? "" : value}
+                  </span>
+                )}
                 sx={{
-                  color: "white",
+                  color: "white !important",
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255,255,255,0.3)",
                   },
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255,255,255,0.5)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.8)",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white !important",
+                  },
+                  "& .MuiSelect-select": {
+                    color: "white !important",
+                  },
+                  "& .MuiInputLabel-root": {
+                    color: "rgba(255,255,255,0.7)",
+                  },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: "white",
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: 2,
+                      mt: 1,
+                      "& .MuiMenuItem-root": {
+                        color: "text.primary",
+                        "&:hover": {
+                          bgcolor: "rgba(102, 126, 234, 0.1)",
+                          color: "#667eea",
+                        },
+                        "&.Mui-selected": {
+                          bgcolor: "rgba(102, 126, 234, 0.2)",
+                          color: "#667eea",
+                          fontWeight: "bold",
+                          "&:hover": {
+                            bgcolor: "rgba(102, 126, 234, 0.3)",
+                            color: "#667eea",
+                          },
+                        },
+                      },
+                    },
                   },
                 }}
               >
@@ -561,17 +719,6 @@ const StudentSkillsTable = () => {
             >
               Column Filters
             </Button>
-
-            {/* <Button
-              onClick={clearAllFilters}
-              startIcon={<ClearIcon />}
-              variant="text"
-              size="small"
-              sx={{ color: 'white', opacity: 0.8, '&:hover': { opacity: 1 } }}
-            >
-              Clear All
-            </Button> */}
-
             <Button
               onClick={addSkillColumn}
               startIcon={
@@ -633,7 +780,6 @@ const StudentSkillsTable = () => {
                   gap: 1,
                 }}
               >
-                {/* <TrendingUpIcon fontSize="small" color="primary" /> */}
                 {skillName}
               </MenuItem>
             ))}
@@ -646,10 +792,8 @@ const StudentSkillsTable = () => {
             <Box
               sx={{
                 flexShrink: 0,
-                bgcolor: "white",
                 borderRight: 1,
                 borderColor: "grey.200",
-                boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
               }}
             >
               <TableContainer>
@@ -661,13 +805,15 @@ const StudentSkillsTable = () => {
                           fontWeight: "bold",
                           borderRight: 1,
                           borderColor: "grey.200",
-                          width: 140,
+                          width: 100,
+                          height: 80,
+                          verticalAlign: "middle",
+                          textAlign: "center",
                         }}
                       >
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
                         >
-                          {/* <TrendingUpIcon fontSize="small" color="primary" /> */}
                           Total Levels
                         </Box>
                       </TableCell>
@@ -676,13 +822,15 @@ const StudentSkillsTable = () => {
                           fontWeight: "bold",
                           borderRight: 1,
                           borderColor: "grey.200",
-                          width: 150,
+                          width: 100,
+                          height: 80,
+                          verticalAlign: "middle",
+                          textAlign: "center",
                         }}
                       >
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
                         >
-                          {/* <TrendingUpIcon fontSize="small" color="success" /> */}
                           Completed
                         </Box>
                       </TableCell>
@@ -692,6 +840,9 @@ const StudentSkillsTable = () => {
                           borderRight: 1,
                           borderColor: "grey.200",
                           width: 160,
+                          height: 80,
+                          verticalAlign: "middle",
+                          textAlign: "center",
                         }}
                       >
                         Name
@@ -702,25 +853,43 @@ const StudentSkillsTable = () => {
                           borderRight: 1,
                           borderColor: "grey.200",
                           width: 120,
+                          height: 80,
+                          verticalAlign: "middle",
+                          textAlign: "center",
                         }}
                       >
                         Reg No
                       </TableCell>
-                      {/* <TableCell sx={{ fontWeight: 'bold', width: 120 }}>
-                        Department
-                      </TableCell> */}
+                    
                     </TableRow>
 
                     {showColumnFilters && (
                       <TableRow >
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                            width: 100,
+                          }}
                         ></TableCell>
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                            width: 100,
+                          }}
                         ></TableCell>
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                          }}
                         >
                           <TextField
                             size="small"
@@ -742,7 +911,12 @@ const StudentSkillsTable = () => {
                           />
                         </TableCell>
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                          }}
                         >
                           <TextField
                             size="small"
@@ -758,16 +932,7 @@ const StudentSkillsTable = () => {
                             }
                           />
                         </TableCell>
-                        {/* <TableCell>
-                          <TextField
-                            size="small"
-                            placeholder="Search dept..."
-                            variant="outlined"
-                            fullWidth
-                            value={columnFilters.department}
-                            onChange={(e) => setColumnFilters(prev => ({ ...prev, department: e.target.value }))}
-                          />
-                        </TableCell> */}
+                       
                       </TableRow>
                     )}
                   </TableHead>
@@ -779,36 +944,56 @@ const StudentSkillsTable = () => {
                         sx={{
                           "&:hover": { bgcolor: "primary.50" },
                           "&:nth-of-type(even)": { bgcolor: "grey.25" },
+                          height: 60,
                         }}
                       >
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                            textAlign: "center",
+                            width: 100,
+                          }}
                         >
                           <LevelBox
                             value={student.totalLevels}
                             type="total"
-                            onClick={() => console.log("Total levels clicked")}
+                            onClick={() => {}}
                           />
                         </TableCell>
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                            textAlign: "center",
+                            width: 100,
+                          }}
                         >
                           <LevelBox
                             value={student.completedLevels}
                             type="completed"
                             maxValue={student.totalLevels}
-                            onClick={() =>
-                              console.log("Completed levels clicked")
-                            }
+                            onClick={() => {}}
                           />
                         </TableCell>
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                            textAlign: "center",
+                          }}
                         >
                           <Box
                             sx={{
                               display: "flex",
                               alignItems: "center",
+                              justifyContent: "center",
                               gap: 1,
                             }}
                           >
@@ -821,7 +1006,13 @@ const StudentSkillsTable = () => {
                           </Box>
                         </TableCell>
                         <TableCell
-                          sx={{ borderRight: 1, borderColor: "grey.200" }}
+                          sx={{ 
+                            borderRight: 1, 
+                            borderColor: "grey.200",
+                            height: 60,
+                            verticalAlign: "middle",
+                            textAlign: "center",
+                          }}
                         >
                           <Chip
                             label={student.regNo}
@@ -830,14 +1021,6 @@ const StudentSkillsTable = () => {
                             color="primary"
                           />
                         </TableCell>
-                        {/* <TableCell>
-                          <Chip 
-                            label={student.department} 
-                            size="small"
-                            color={student.department === 'CSE' ? 'primary' : 
-                                   student.department === 'ECE' ? 'secondary' : 'default'}
-                          />
-                        </TableCell> */}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -851,7 +1034,9 @@ const StudentSkillsTable = () => {
                 <Table
                   sx={{
                     borderCollapse: "collapse",
-                    minWidth: skillColumns.length * 220,
+                    minWidth: skillColumns.length * 200,
+                    tableLayout: "fixed",
+                    width: "100%",
                   }}
                 >
                   <TableHead sx={{ bgcolor: "grey.50" }}>
@@ -863,8 +1048,9 @@ const StudentSkillsTable = () => {
                             fontWeight: "bold",
                             borderRight: 1,
                             borderColor: "grey.200",
-                            width: 220,
-                            minWidth: 220,
+                            minWidth: 200,
+                            height: 80,
+                            verticalAlign: "middle",
                             position: "relative",
                           }}
                         >
@@ -873,6 +1059,8 @@ const StudentSkillsTable = () => {
                               display: "flex",
                               flexDirection: "column",
                               gap: 1,
+                              height: "100%",
+                              justifyContent: "center",
                             }}
                           >
                             <Box
@@ -882,48 +1070,74 @@ const StudentSkillsTable = () => {
                                 gap: 1,
                               }}
                             >
-                              <Button
-                                variant="outlined"
-                                onClick={(e) => handleOpenMenu(e, skill.id)}
-                                endIcon={<ArrowDropDownIcon />}
+                              <Box
                                 sx={{
-                                  textTransform: "none",
-                                  justifyContent: "space-between",
-                                  minHeight: 44,
-                                  bgcolor: "white",
-                                  border: 2,
-                                  borderColor: skill.color,
-                                  borderRadius: 2,
+                                  position: "relative",
                                   flex: 1,
-                                  "&:hover": {
-                                    bgcolor: `${skill.color}15`,
-                                    borderColor: skill.color,
-                                    transform: "translateY(-1px)",
-                                  },
                                 }}
                               >
-                                <Box sx={{ textAlign: "left", width: "100%" }}>
-                                  <Typography
-                                    variant="subtitle2"
-                                    sx={{
-                                      fontWeight: "bold",
-                                      color: skill.color,
-                                    }}
-                                  >
-                                    {skill.name}
-                                  </Typography>
-                                  {skill.selectedSkill && (
-                                    <Typography
-                                      variant="caption"
-                                      sx={{ color: "text.secondary" }}
-                                    >
-                                      {skill.selectedSkill}
-                                    </Typography>
-                                  )}
-                                </Box>
-                              </Button>
+                                {/* Floating Label with MUI-style animation */}
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    position: "absolute",
+                                    top: skill.selectedSkill ? -8 : "50%",
+                                    left: 12,
+                                    transform: skill.selectedSkill ? "translateY(0)" : "translateY(-50%)",
+                                    bgcolor: skill.selectedSkill ? "white" : "transparent",
+                                    px: skill.selectedSkill ? 1 : 0,
+                                    color: skill.selectedSkill ? skill.color : "text.secondary",
+                                    fontWeight: skill.selectedSkill ? "bold" : "normal",
+                                    fontSize: skill.selectedSkill ? "0.7rem" : "0.875rem",
+                                    zIndex: 1,
+                                    transition: "all 0.2s ease-in-out",
+                                    pointerEvents: "none",
+                                  }}
+                                >
+                                  {skill.name}
+                                </Typography>
+                                
+                                <Button
+                                  variant="outlined"
+                                  onClick={(e) => handleOpenMenu(e, skill.id)}
+                                  endIcon={<ArrowDropDownIcon />}
+                                  sx={{
+                                    textTransform: "none",
+                                    justifyContent: "space-between",
+                                    minHeight: 44,
+                                    bgcolor: "white",
+                                    border: 2,
+                                    borderColor: skill.selectedSkill ? skill.color : "grey.300",
+                                    borderRadius: 2,
+                                    width: "100%",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                      bgcolor: `${skill.color || "grey"}15`,
+                                      borderColor: skill.color || "grey.500",
+                                      transform: "translateY(-1px)",
+                                    },
+                                    "&:focus": {
+                                      borderColor: skill.color || "primary.main",
+                                    },
+                                  }}
+                                >
+                                  <Box sx={{ textAlign: "left", width: "100%", pl: skill.selectedSkill ? 0 : 2 }}>
+                                    {skill.selectedSkill && (
+                                      <Typography
+                                        variant="body2"
+                                        sx={{
+                                          fontWeight: "medium",
+                                          color: "text.primary",
+                                        }}
+                                      >
+                                        {skill.selectedSkill}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </Button>
+                              </Box>
 
-                              {skillColumns.length > 2 && (
+                              {skillColumns.length > 3 && (
                                 <Tooltip title="Remove skill column">
                                   <IconButton
                                     size="small"
@@ -951,8 +1165,9 @@ const StudentSkillsTable = () => {
                             sx={{
                               borderRight: 1,
                               borderColor: "grey.200",
-                              width: 220,
-                              minWidth: 220,
+                              minWidth: 200,
+                              height: 60,
+                              verticalAlign: "middle",
                             }}
                           ></TableCell>
                         ))}
@@ -967,6 +1182,7 @@ const StudentSkillsTable = () => {
                         sx={{
                           "&:hover": { bgcolor: "primary.50" },
                           "&:nth-of-type(even)": { bgcolor: "grey.25" },
+                          height: 60,
                         }}
                       >
                         {skillColumns.map((skill) => (
@@ -976,8 +1192,9 @@ const StudentSkillsTable = () => {
                               borderRight: 1,
                               borderColor: "grey.200",
                               textAlign: "center",
-                              width: 220,
-                              minWidth: 220,
+                              minWidth: 200,
+                              height: 60,
+                              verticalAlign: "middle",
                             }}
                           >
                             {skill.selectedSkill ? (
@@ -989,12 +1206,30 @@ const StudentSkillsTable = () => {
                                 skillColor={skill.color}
                               />
                             ) : (
-                              <Typography
-                                color="text.disabled"
-                                sx={{ fontStyle: "italic" }}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  height: 36,
+                                  width: 80,
+                                  margin: "0 auto",
+                                  border: 2,
+                                  borderColor: "grey.300",
+                                  borderRadius: 2,
+                                  backgroundColor: "grey.50",
+                                }}
                               >
-                                Select a skill
-                              </Typography>
+                                <Typography
+                                  color="text.disabled"
+                                  sx={{ 
+                                    fontStyle: "italic",
+                                    fontSize: "0.875rem",
+                                  }}
+                                >
+                                  -
+                                </Typography>
+                              </Box>
                             )}
                           </TableCell>
                         ))}
