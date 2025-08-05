@@ -35,7 +35,12 @@ const NAVIGATION = [
     icon: <DashboardIcon />,
   },
   {
-    segment: 'orders',
+    segment:'mentee_dashboard',
+    title: 'Mentee dashboard',
+    icon: <ManageAccountsIcon/>,
+  },
+  {
+    segment: 'mentor',
     title: 'mentor allocation',
     icon: <SupervisedUserCircleIcon />,
   },
@@ -43,7 +48,8 @@ const NAVIGATION = [
     segment:'student_dashboard',
     title: 'Student dashboard',
     icon: <ManageAccountsIcon/>,
-  }
+  },
+
 ];
 
 const demoTheme = createTheme({
