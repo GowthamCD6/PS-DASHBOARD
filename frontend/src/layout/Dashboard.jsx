@@ -24,14 +24,11 @@ import {
 } from '@toolpad/core/Account';
 
 import { DemoProvider } from '@toolpad/core/internal';
+import logo from '../assets/logo.png';
 // import StudentSkillsTable from '../pages/dash';
 // import StudentDashboard from '../pages/student_dashboard';
 
 const NAVIGATION = [
-  {
-    kind: 'header',
-    title: 'Main items',
-  },
   {
     segment: 'dashboard',
     title: 'Dashboard',
@@ -61,6 +58,15 @@ const demoTheme = createTheme({
       md: 600,
       lg: 1200,
       xl: 1536,
+    },
+  },
+  components: {
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          width: 'var(--Sidebar-width, 200px)',
+        },
+      },
     },
   },
 });
@@ -291,6 +297,10 @@ function DashboardLayoutAccountSidebar(props) {
     <DemoProvider window={demoWindow}>
       <AppProvider
         navigation={NAVIGATION}
+        branding={{
+          logo: <img src={logo} alt="PS Dashboard Logo" style={{ height: 40 }} />,
+          title: 'PS DASHBOARD',
+        }}
         router={router}
         theme={demoTheme}
         window={demoWindow}
@@ -299,6 +309,9 @@ function DashboardLayoutAccountSidebar(props) {
       >
         {/* preview-start */}
         <DashboardLayout
+          sx={{
+            '--Sidebar-width': '200px',
+          }}
           slots={{
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,
