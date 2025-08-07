@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react"; // Added useEffect import
+import axios from 'axios';
+import { debounce } from 'lodash';
 import {
   Box,
   Typography,
@@ -48,89 +50,55 @@ const StudentSkillsTable = () => {
     department: "",
   });
 
+  const handleSearchChange = debounce((name, value) => {
+    setColumnFilters(prev => ({ ...prev, [name]: value }));
+  }, 300);
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Only declare once
+  const [skillColumns, setSkillColumns] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [availableSkills, setAvailableSkills] = useState([]);
 
-  const [skillColumns, setSkillColumns] = useState([
-    {
-      id: "skill1",
-      name: "Skill 1",
-      selectedSkill: "JavaScript",
-      color: "#1976d2",
-    },
-    { id: "skill2", name: "Skill 2", selectedSkill: "React", color: "#2e7d32" },
-    { id: "skill3", name: "Skill 3", selectedSkill: "", color: "#d32f2f" },
-  ]);
+  useEffect(() => {
+  const fetchData = async () => {
+  setIsLoading(true);
+  try {
+    const response = await axios.get('http://localhost:7000/api/students');
+    const { students, skillColumns, availableSkills } = response.data;
 
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: "Ram Kumar",
-      regNo: "7376242CSE163",
-      department: "CSE",
-      totalLevels: 10,
-      completedLevels: 7,
-      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      regNo: "7376243ECE164",
-      department: "ECE",
-      totalLevels: 8,
-      completedLevels: 6,
-      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
-    },
-    {
-      id: 3,
-      name: "Jane Smith",
-      regNo: "7376244IT165",
-      department: "IT",
-      totalLevels: 12,
-      completedLevels: 9,
-      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
-    },
-    {
-      id: 4,
-      name: "Alice Johnson",
-      regNo: "7376245CSE166",
-      department: "CSE",
-      totalLevels: 15,
-      completedLevels: 12,
-      skillLevels: { skill1: 10, skill2: 5, skill3: 0 },
-    },
-  ]);
+    // Map to match frontend expectations
+    const formattedStudents = students.map(student => ({
+      id: student.id,
+      name: student.name,
+      regNo: student.register_number,
+      department: student.department,
+      completedLevels: student.completed_levels,
+      totalLevels: student.total_levels,
+      skillLevels: student.skillLevels || {}
+    }));
 
-  const availableSkills = [
-    "JavaScript",
-    "Python",
-    "Java",
-    "C++",
-    "C",
-    "React",
-    "Angular",
-    "Vue.js",
-    "Node.js",
-    "Django",
-    "Spring",
-    "Express.js",
-    "MongoDB",
-    "MySQL",
-    "PostgreSQL",
-    "HTML",
-    "CSS",
-    "PHP",
-    "Ruby",
-    "Go",
-    "Rust",
-    "TypeScript",
-    "Swift",
-    "Kotlin",
-    "Docker",
-    "AWS",
-    "Git",
-  ];
+    setStudents(formattedStudents);
+    setSkillColumns(skillColumns);
+    setAvailableSkills(availableSkills);
+
+  } catch (error) {
+    console.error('Fetch error:', error);
+    // Initialize empty states
+    setStudents([]);
+    setSkillColumns([]);
+    setAvailableSkills([]);
+    
+    // Show user-friendly error
+    alert('Failed to load student data. Please try again later.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+  
+  fetchData();
+}, []);
 
   const skillColors = [
     '#1976d2', '#2e7d32', '#d32f2f', '#7b1fa2', '#f57c00',
@@ -139,7 +107,8 @@ const StudentSkillsTable = () => {
 
   // Optimized filtering with useMemo
   const filteredStudents = useMemo(() => {
-    return students.filter((student) => {
+  return Array.isArray(students) 
+    ? students.filter((student) => {
       return (
         student.name.toLowerCase().includes(columnFilters.name.toLowerCase()) &&
         student.regNo
@@ -149,8 +118,9 @@ const StudentSkillsTable = () => {
           .toLowerCase()
           .includes(columnFilters.department.toLowerCase())
       );
-    });
-  }, [students, columnFilters]);
+    })
+    : [];
+}, [students, columnFilters]);
 
   // Statistics calculation
   const stats = useMemo(() => {
@@ -226,22 +196,24 @@ const StudentSkillsTable = () => {
     setSelectedSkillId(null);
   };
 
-  const updateSkillLevel = (studentId, skillId, level) => {
-    const clampedLevel = Math.max(0, Math.min(100, level));
-    setStudents((prev) =>
-      prev.map((student) =>
-        student.id === studentId
-          ? {
-              ...student,
-              skillLevels: {
-                ...student.skillLevels,
-                [skillId]: clampedLevel,
-              },
-            }
-          : student
-      )
-    );
-  };
+  const updateSkillLevel = async (studentId, skillId, level) => {
+  const clampedLevel = Math.max(0, Math.min(100, level));
+  
+  try {
+    await axios.put(`http://localhost:7000/api/students/${studentId}/skills`, {
+      skillId,
+      level: clampedLevel
+    });
+    
+    setStudents(prev => prev.map(student => 
+      student.id === studentId 
+        ? { ...student, skillLevels: { ...student.skillLevels, [skillId]: clampedLevel } } 
+        : student
+    ));
+  } catch (error) {
+    console.error('Error updating skill level:', error);
+  }
+};
 
   const clearAllFilters = () => {
     setColumnFilters({ name: "", regNo: "", department: "" });
@@ -720,9 +692,10 @@ const StudentSkillsTable = () => {
               Column Filters
             </Button>
             <Button
+            aria-label="Add skill"
               onClick={addSkillColumn}
               startIcon={
-                isLoading ? <Skeleton width={20} height={20} /> : <AddIcon />
+                isLoading ? <Skeleton variant="rectangular" height={400} /> : <AddIcon />
               }
               variant="contained"
               sx={{
@@ -924,12 +897,7 @@ const StudentSkillsTable = () => {
                             variant="outlined"
                             fullWidth
                             value={columnFilters.regNo}
-                            onChange={(e) =>
-                              setColumnFilters((prev) => ({
-                                ...prev,
-                                regNo: e.target.value,
-                              }))
-                            }
+                            onChange={(e) => handleSearchChange('name', e.target.value)}
                           />
                         </TableCell>
                        
