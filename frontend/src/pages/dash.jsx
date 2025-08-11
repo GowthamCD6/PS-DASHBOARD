@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react"; // Added useEffect import
+import React, { useState, useMemo, useEffect, useRef } from "react"; // Added useEffect import
 import axios from "axios";
 import { debounce } from "lodash";
 import {
@@ -43,6 +43,10 @@ import {
 const StudentSkillsTable = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+
+  const fixedColumnsRef = useRef(null);
+  const scrollableSkillsRef = useRef(null);
+  const scrollSyncRef = useRef(null);
 
   const [filters, setFilters] = useState({
     role: "",
@@ -345,6 +349,39 @@ const StudentSkillsTable = () => {
     );
   };
 
+  useEffect(() => {
+    const fixedEl = fixedColumnsRef.current;
+    const scrollableEl = scrollableSkillsRef.current;
+
+    const handleFixedScroll = () => {
+      if (scrollSyncRef.current !== 'scrollable') {
+        scrollSyncRef.current = 'fixed';
+        scrollableEl.scrollTop = fixedEl.scrollTop;
+      }
+      scrollSyncRef.current = null;
+    };
+
+    const handleScrollableScroll = () => {
+      if (scrollSyncRef.current !== 'fixed') {
+        scrollSyncRef.current = 'scrollable';
+        fixedEl.scrollTop = scrollableEl.scrollTop;
+      }
+      scrollSyncRef.current = null;
+    };
+
+    if (fixedEl && scrollableEl) {
+      fixedEl.addEventListener('scroll', handleFixedScroll);
+      scrollableEl.addEventListener('scroll', handleScrollableScroll);
+    }
+
+    return () => {
+      if (fixedEl && scrollableEl) {
+        fixedEl.removeEventListener('scroll', handleFixedScroll);
+        scrollableEl.removeEventListener('scroll', handleScrollableScroll);
+      }
+    };
+  }, []);
+
   return (
     <Box
       sx={{
@@ -359,7 +396,13 @@ const StudentSkillsTable = () => {
           mx: "auto",
           borderRadius: 3,
           boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-          overflow: "hidden",
+          overflow: "auto",
+          maxHeight: "90vh",
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
         }}
       >
         {/* Enhanced Header with Stats */}
@@ -368,6 +411,9 @@ const StudentSkillsTable = () => {
             p: 3,
             background: "#667eea",
             color: "white",
+            position: "sticky",
+            top: 0,
+            zIndex: 101,
           }}
         >
           <Box
@@ -633,15 +679,27 @@ const StudentSkillsTable = () => {
           {/* Fixed Columns */}
           <Box sx={{ display: "flex" }}>
             <Box
+              ref={fixedColumnsRef}
               sx={{
                 flexShrink: 0,
                 borderRight: 1,
                 borderColor: "grey.200",
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
+                "-ms-overflow-style": "none",
+                "scrollbar-width": "none",
               }}
             >
               <TableContainer>
                 <Table sx={{ borderCollapse: "collapse" }}>
-                  <TableHead sx={{ bgcolor: "grey.50" }}>
+                  <TableHead sx={{ 
+                    bgcolor: "grey.50",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 100,
+                  }}>
                     <TableRow>
                       <TableCell
                         sx={{
@@ -652,6 +710,10 @@ const StudentSkillsTable = () => {
                           height: 80,
                           verticalAlign: "middle",
                           textAlign: "center",
+                          position: "sticky",
+                          top: 0,
+                          bgcolor: "grey.50",
+                          zIndex: 100,
                         }}
                       >
                         <Box
@@ -724,6 +786,10 @@ const StudentSkillsTable = () => {
                             height: 60,
                             verticalAlign: "middle",
                             width: 100,
+                            position: "sticky",
+                            top: 80,
+                            bgcolor: "white",
+                            zIndex: 99,
                           }}
                         ></TableCell>
                         <TableCell
@@ -733,6 +799,10 @@ const StudentSkillsTable = () => {
                             height: 60,
                             verticalAlign: "middle",
                             width: 100,
+                            position: "sticky",
+                            top: 80,
+                            bgcolor: "white",
+                            zIndex: 99,
                           }}
                         ></TableCell>
                         <TableCell
@@ -741,6 +811,10 @@ const StudentSkillsTable = () => {
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
+                            position: "sticky",
+                            top: 80,
+                            bgcolor: "white",
+                            zIndex: 99,
                           }}
                         >
                           <TextField
@@ -919,7 +993,12 @@ const StudentSkillsTable = () => {
                     width: "100%",
                   }}
                 >
-                  <TableHead sx={{ bgcolor: "grey.50" }}>
+                  <TableHead sx={{ 
+                    bgcolor: "grey.50",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 100,
+                  }}>
                     <TableRow>
                       {skillColumns.map((skill) => (
                         <TableCell
@@ -932,6 +1011,10 @@ const StudentSkillsTable = () => {
                             height: 80,
                             verticalAlign: "middle",
                             position: "relative",
+                            position: "sticky",
+                            top: 0,
+                            bgcolor: "grey.50",
+                            zIndex: 100,
                           }}
                         >
                           <Box
@@ -1073,6 +1156,10 @@ const StudentSkillsTable = () => {
                               minWidth: 200,
                               height: 60,
                               verticalAlign: "middle",
+                              position: "sticky",
+                              top: 80,
+                              bgcolor: "white",
+                              zIndex: 99,
                             }}
                           >
                             <TextField

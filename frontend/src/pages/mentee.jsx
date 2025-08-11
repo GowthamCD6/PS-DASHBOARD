@@ -414,6 +414,9 @@ const MenteeDashboard = () => {
         p: { xs: 1, sm: 2 },
         width: "100%",
         marginTop: -3,
+        height: "calc(100vh - 64px)", // Adjust based on your app bar height
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Paper
@@ -422,7 +425,8 @@ const MenteeDashboard = () => {
           mx: "auto",
           borderRadius: 3,
           boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-          overflow: "hidden",
+          overflow: "auto",
+          maxHeight: "calc(100vh - 80px)", // Adjust this value based on your layout
         }}
       >
         {/* Enhanced Header with Mentee Stats */}
@@ -431,6 +435,9 @@ const MenteeDashboard = () => {
             p: 3,
             background: "#667eea",
             color: "white",
+            position: "sticky",
+            top: 0,
+            zIndex: 1100,
           }}
         >
           <Box
@@ -671,8 +678,8 @@ const MenteeDashboard = () => {
             ))}
         </Menu>
 
-        {/* Enhanced Table */}
-        <Box sx={{ position: "relative", mt: 3 }}>
+        {/* Enhanced Table - THIS PART WILL BE SCROLLABLE */}
+        <Box sx={{ flexGrow: 1, overflowY: "auto", position: "relative", mt: 3 }}>
           {/* Fixed Columns */}
           <Box sx={{ display: "flex" }}>
             <Box
