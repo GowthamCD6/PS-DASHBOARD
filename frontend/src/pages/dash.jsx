@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react"; // Added useEffect import
-import axios from 'axios';
-import { debounce } from 'lodash';
+import axios from "axios";
+import { debounce } from "lodash";
 import {
   Box,
   Typography,
@@ -26,6 +26,7 @@ import {
   CardContent,
   Fade,
   Skeleton,
+  useTheme,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -35,9 +36,14 @@ import {
   Clear as ClearIcon,
   Delete as DeleteIcon,
   TrendingUp as TrendingUpIcon,
+  School as SchoolIcon,
+  AssignmentTurnedIn as AssignmentTurnedInIcon,
 } from "@mui/icons-material";
 
 const StudentSkillsTable = () => {
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+
   const [filters, setFilters] = useState({
     role: "",
     year: "",
@@ -50,8 +56,15 @@ const StudentSkillsTable = () => {
     department: "",
   });
 
+  // Dynamic skill level filters
+  const [skillFilters, setSkillFilters] = useState({});
+
   const handleSearchChange = debounce((name, value) => {
-    setColumnFilters(prev => ({ ...prev, [name]: value }));
+    setColumnFilters((prev) => ({ ...prev, [name]: value }));
+  }, 300);
+
+  const handleSkillFilterChange = debounce((skillId, value) => {
+    setSkillFilters((prev) => ({ ...prev, [skillId]: value }));
   }, 300);
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -62,65 +75,75 @@ const StudentSkillsTable = () => {
   const [availableSkills, setAvailableSkills] = useState([]);
 
   useEffect(() => {
-  const fetchData = async () => {
-  setIsLoading(true);
-  try {
-    const response = await axios.get('http://localhost:7000/api/students');
-    const { students, skillColumns, availableSkills } = response.data;
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get("http://localhost:7000/api/students");
+        const { students, skillColumns, availableSkills } = response.data;
 
-    // Map to match frontend expectations
-    const formattedStudents = students.map(student => ({
-      id: student.id,
-      name: student.name,
-      regNo: student.register_number,
-      department: student.department,
-      completedLevels: student.completed_levels,
-      totalLevels: student.total_levels,
-      skillLevels: student.skillLevels || {}
-    }));
+        // Map to match frontend expectations
+        const formattedStudents = students.map((student) => ({
+          id: student.id,
+          name: student.name,
+          regNo: student.register_number,
+          department: student.department,
+          completedLevels: student.completed_levels,
+          totalLevels: student.total_levels,
+          skillLevels: student.skillLevels || {},
+        }));
 
-    setStudents(formattedStudents);
-    setSkillColumns(skillColumns);
-    setAvailableSkills(availableSkills);
+        setStudents(formattedStudents);
+        setSkillColumns(skillColumns);
+        setAvailableSkills(availableSkills);
+      } catch (error) {
+        console.error("Fetch error:", error);
+        // Initialize empty states
+        setStudents([]);
+        setSkillColumns([]);
+        setAvailableSkills([]);
 
-  } catch (error) {
-    console.error('Fetch error:', error);
-    // Initialize empty states
-    setStudents([]);
-    setSkillColumns([]);
-    setAvailableSkills([]);
-    
-    // Show user-friendly error
-    alert('Failed to load student data. Please try again later.');
-  } finally {
-    setIsLoading(false);
-  }
-};
-  
-  fetchData();
-}, []);
+        // Show user-friendly error
+        alert("Failed to load student data. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const skillColors = [
-    '#1976d2', '#2e7d32', '#d32f2f', '#7b1fa2', '#f57c00',
-    '#0288d1', '#388e3c', '#f44336', '#9c27b0', '#ff9800'
-  ];
+    fetchData();
+  }, []);
 
   // Optimized filtering with useMemo
   const filteredStudents = useMemo(() => {
-  return Array.isArray(students) 
-    ? students.filter((student) => {
-      return (
-        student.name.toLowerCase().includes(columnFilters.name.toLowerCase()) &&
-        student.regNo
-          .toLowerCase()
-          .includes(columnFilters.regNo.toLowerCase()) &&
-        student.department
-          .toLowerCase()
-          .includes(columnFilters.department.toLowerCase())
-      );
-    })
-    : [];
-}, [students, columnFilters]);
+    return Array.isArray(students)
+      ? students.filter((student) => {
+          // Basic filters
+          const basicFilter = (
+            student.name
+              .toLowerCase()
+              .includes(columnFilters.name.toLowerCase()) &&
+            student.regNo
+              .toLowerCase()
+              .includes(columnFilters.regNo.toLowerCase()) &&
+            student.department
+              .toLowerCase()
+              .includes(columnFilters.department.toLowerCase())
+          );
+
+          // Skill level filters
+          const skillFilter = Object.entries(skillFilters).every(([skillId, filterValue]) => {
+            if (!filterValue) return true; // No filter applied
+            
+            const studentSkillLevel = student.skillLevels?.[skillId] || 0;
+            const filterLevel = parseInt(filterValue);
+            
+            // Filter logic: show students with skill level >= filter value
+            return !isNaN(filterLevel) ? studentSkillLevel >= filterLevel : true;
+          });
+
+          return basicFilter && skillFilter;
+        })
+      : [];
+  }, [students, columnFilters, skillFilters]);
 
   // Statistics calculation
   const stats = useMemo(() => {
@@ -148,7 +171,6 @@ const StudentSkillsTable = () => {
         id: `skill${nextSkillNumber}`,
         name: `Skill ${nextSkillNumber}`,
         selectedSkill: "",
-        color: skillColors[nextSkillNumber % skillColors.length]
       };
       setSkillColumns([...skillColumns, newSkill]);
       setIsLoading(false);
@@ -196,27 +218,9 @@ const StudentSkillsTable = () => {
     setSelectedSkillId(null);
   };
 
-  const updateSkillLevel = async (studentId, skillId, level) => {
-  const clampedLevel = Math.max(0, Math.min(100, level));
-  
-  try {
-    await axios.put(`http://localhost:7000/api/students/${studentId}/skills`, {
-      skillId,
-      level: clampedLevel
-    });
-    
-    setStudents(prev => prev.map(student => 
-      student.id === studentId 
-        ? { ...student, skillLevels: { ...student.skillLevels, [skillId]: clampedLevel } } 
-        : student
-    ));
-  } catch (error) {
-    console.error('Error updating skill level:', error);
-  }
-};
-
   const clearAllFilters = () => {
     setColumnFilters({ name: "", regNo: "", department: "" });
+    setSkillFilters({});
     setFilters({ role: "", year: "" });
   };
 
@@ -310,52 +314,43 @@ const StudentSkillsTable = () => {
     );
   };
 
-  // Enhanced Skill Input Component
-  const SkillInput = ({ value, onChange, skillColor }) => (
-    <TextField
-      type="number"
-      size="small"
-      value={value || 0}
-      onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-      inputProps={{
-        min: 0,
-        max: 100,
-        style: { textAlign: "center", fontWeight: "bold", height: "20px" },
-      }}
-      sx={{
-        width: 80,
-        "& .MuiOutlinedInput-root": {
+  // Enhanced Skill Display Component (Read-only)
+  const SkillDisplay = ({ value }) => {
+    const displayValue = value || 0;
+
+    return (
+      <Box
+        sx={{
+          width: 80,
           height: 36,
-          borderRadius: 2,
-          "& input": {
-            color:
-              value >= 80
-                ? "success.main"
-                : value >= 60
-                  ? "warning.main"
-                  : "error.main",
-            padding: "8px 12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: 1,
+          borderColor: "grey.300",
+          borderRadius: 3,
+          backgroundColor: "background.paper",
+          color: "text.primary",
+          fontWeight: "bold",
+          fontSize: "14px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          "&:hover": {
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            borderColor: "grey.400",
           },
-          "&:hover fieldset": {
-            borderColor: skillColor,
-          },
-          "&.Mui-focused fieldset": {
-            borderColor: skillColor,
-          },
-        },
-      }}
-      InputProps={{
-        endAdornment: <InputAdornment position="end"></InputAdornment>,
-      }}
-    />
-  );
+        }}
+      >
+        {displayValue}
+      </Box>
+    );
+  };
 
   return (
     <Box
       sx={{
         p: { xs: 1, sm: 2 },
         width: "100%",
-        marginTop:-3,
+        marginTop: -3,
       }}
     >
       <Paper
@@ -371,7 +366,7 @@ const StudentSkillsTable = () => {
         <Box
           sx={{
             p: 3,
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "#667eea",
             color: "white",
           }}
         >
@@ -386,21 +381,21 @@ const StudentSkillsTable = () => {
             }}
           >
             <Box sx={{ flex: 1 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontWeight: "bold", 
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: "bold",
                   mb: 1,
-                  fontSize: { xs: "1.5rem", sm: "2rem" }
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
                 }}
               >
                 Student Skills Dashboard
               </Typography>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
+              <Typography
+                variant="subtitle1"
+                sx={{
                   opacity: 0.9,
-                  fontSize: { xs: "0.875rem", sm: "1rem" }
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
                 }}
               >
                 Track and manage student progress across different skills
@@ -408,12 +403,12 @@ const StudentSkillsTable = () => {
             </Box>
 
             {/* Stats Cards */}
-            <Box 
-              sx={{ 
-                display: "flex", 
+            <Box
+              sx={{
+                display: "flex",
                 gap: 2,
                 flexWrap: "wrap",
-                justifyContent: { xs: "center", md: "flex-end" }
+                justifyContent: { xs: "center", md: "flex-end" },
               }}
             >
               <Card
@@ -424,10 +419,20 @@ const StudentSkillsTable = () => {
                 }}
               >
                 <CardContent sx={{ p: 2, color: "white", textAlign: "center" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 1,
+                    }}
+                  >
+                    <SchoolIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                    <Typography variant="caption">Students</Typography>
+                  </Box>
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                     {stats.totalStudents}
                   </Typography>
-                  <Typography variant="caption">Students</Typography>
                 </CardContent>
               </Card>
               <Card
@@ -438,9 +443,21 @@ const StudentSkillsTable = () => {
                 }}
               >
                 <CardContent sx={{ p: 2, color: "white", textAlign: "center" }}>
-                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    {stats.avgCompletion}%
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 1,
+                    }}
+                  >
+                    <AssignmentTurnedInIcon
+                      sx={{ mr: 1, fontSize: "1.2rem" }}
+                    />
+                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                      {stats.avgCompletion}%
+                    </Typography>
+                  </Box>
                   <Typography variant="caption">Avg Completion</Typography>
                 </CardContent>
               </Card>
@@ -448,267 +465,120 @@ const StudentSkillsTable = () => {
           </Box>
 
           {/* Enhanced Filters */}
-          <Box
+          <Card
             sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              flexWrap: "wrap",
+              bgcolor: "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(10px)",
+              borderRadius: 2,
+              p: 2,
+              mt: 2,
             }}
           >
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel sx={{ color: "white" }}>Role</InputLabel>
-              <Select
-                value={filters.role}
-                label="Role"
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, role: e.target.value }))
-                }
-                renderValue={(value) => (
-                  <span style={{ color: 'white' }}>
-                    {value === "" ? "" : value === "HOD" ? "HOD" : value === "faculty" ? "Faculty" : "Student"}
-                  </span>
-                )}
-                sx={{
-                  color: "white !important",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.3)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.5)",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.8)",
-                  },
-                  "& .MuiSvgIcon-root": {
-                    color: "white !important",
-                  },
-                  "& .MuiSelect-select": {
-                    color: "white !important",
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255,255,255,0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: "white",
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        color: "text.primary",
-                        "&:hover": {
-                          bgcolor: "rgba(102, 126, 234, 0.1)",
-                          color: "#667eea",
-                        },
-                        "&.Mui-selected": {
-                          bgcolor: "rgba(102, 126, 234, 0.2)",
-                          color: "#667eea",
-                          fontWeight: "bold",
-                          "&:hover": {
-                            bgcolor: "rgba(102, 126, 234, 0.3)",
-                            color: "#667eea",
-                          },
-                        },
-                      },
-                    },
-                  },
-                }}
-              >
-                <MenuItem value="">All Roles</MenuItem>
-                <MenuItem value="HOD">HOD</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel sx={{ color: "white" }}>Year</InputLabel>
-              <Select
-                value={filters.year}
-                label="Year"
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, year: e.target.value }))
-                }
-                renderValue={(value) => (
-                  <span style={{ color: 'white' }}>
-                    {value === "" ? "" : `${value} Year`}
-                  </span>
-                )}
-                sx={{
-                  color: "white !important",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.3)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.5)",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.8)",
-                  },
-                  "& .MuiSvgIcon-root": {
-                    color: "white !important",
-                  },
-                  "& .MuiSelect-select": {
-                    color: "white !important",
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255,255,255,0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: "white",
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        color: "text.primary",
-                        "&:hover": {
-                          bgcolor: "rgba(102, 126, 234, 0.1)",
-                          color: "#667eea",
-                        },
-                        "&.Mui-selected": {
-                          bgcolor: "rgba(102, 126, 234, 0.2)",
-                          color: "#667eea",
-                          fontWeight: "bold",
-                          "&:hover": {
-                            bgcolor: "rgba(102, 126, 234, 0.3)",
-                            color: "#667eea",
-                          },
-                        },
-                      },
-                    },
-                  },
-                }}
-              >
-                <MenuItem value="">All Years</MenuItem>
-                <MenuItem value="I">I Year</MenuItem>
-                <MenuItem value="II">II Year</MenuItem>
-                <MenuItem value="III">III Year</MenuItem>
-                <MenuItem value="IV">IV Year</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel sx={{ color: "white" }}>Department</InputLabel>
-              <Select
-                value={columnFilters.department}
-                label="Department"
-                onChange={(e) =>
-                  setColumnFilters((prev) => ({
-                    ...prev,
-                    department: e.target.value,
-                  }))
-                }
-                renderValue={(value) => (
-                  <span style={{ color: 'white' }}>
-                    {value === "" ? "" : value}
-                  </span>
-                )}
-                sx={{
-                  color: "white !important",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.3)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.5)",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.8)",
-                  },
-                  "& .MuiSvgIcon-root": {
-                    color: "white !important",
-                  },
-                  "& .MuiSelect-select": {
-                    color: "white !important",
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255,255,255,0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: "white",
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        color: "text.primary",
-                        "&:hover": {
-                          bgcolor: "rgba(102, 126, 234, 0.1)",
-                          color: "#667eea",
-                        },
-                        "&.Mui-selected": {
-                          bgcolor: "rgba(102, 126, 234, 0.2)",
-                          color: "#667eea",
-                          fontWeight: "bold",
-                          "&:hover": {
-                            bgcolor: "rgba(102, 126, 234, 0.3)",
-                            color: "#667eea",
-                          },
-                        },
-                      },
-                    },
-                  },
-                }}
-              >
-                <MenuItem value="">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
-              </Select>
-            </FormControl>
-
-            <Button
-              onClick={() => setShowColumnFilters(!showColumnFilters)}
-              startIcon={<FilterListIcon />}
-              variant="outlined"
-              size="small"
+            <Box
               sx={{
-                borderColor: "rgba(255,255,255,0.3)",
-                color: "white",
-                "&:hover": {
-                  borderColor: "white",
-                  bgcolor: "rgba(255,255,255,0.1)",
-                },
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                flexWrap: "wrap",
               }}
             >
-              Column Filters
-            </Button>
-            <Button
-            aria-label="Add skill"
-              onClick={addSkillColumn}
-              startIcon={
-                isLoading ? <Skeleton variant="rectangular" height={400} /> : <AddIcon />
-              }
-              variant="contained"
-              sx={{
-                ml: "auto",
-                bgcolor: "rgba(255,255,255,0.2)",
-                backdropFilter: "blur(10px)",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
-              }}
-              disabled={isLoading}
-            >
-              Add Skill
-            </Button>
-          </Box>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={filters.role}
+                  label="Role"
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, role: e.target.value }))
+                  }
+                  size="small"
+                >
+                  <MenuItem value="">All Roles</MenuItem>
+                  <MenuItem value="HOD">HOD</MenuItem>
+                  <MenuItem value="faculty">Faculty</MenuItem>
+                  <MenuItem value="student">Student</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Year</InputLabel>
+                <Select
+                  value={filters.year}
+                  label="Year"
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, year: e.target.value }))
+                  }
+                  size="small"
+                >
+                  <MenuItem value="">All Years</MenuItem>
+                  <MenuItem value="I">I Year</MenuItem>
+                  <MenuItem value="II">II Year</MenuItem>
+                  <MenuItem value="III">III Year</MenuItem>
+                  <MenuItem value="IV">IV Year</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <InputLabel>Department</InputLabel>
+                <Select
+                  value={columnFilters.department}
+                  label="Department"
+                  onChange={(e) =>
+                    setColumnFilters((prev) => ({
+                      ...prev,
+                      department: e.target.value,
+                    }))
+                  }
+                  size="small"
+                >
+                  <MenuItem value="">All Departments</MenuItem>
+                  <MenuItem value="CSE">CSE</MenuItem>
+                  <MenuItem value="IT">IT</MenuItem>
+                  <MenuItem value="ECE">ECE</MenuItem>
+                  <MenuItem value="EEE">EEE</MenuItem>
+                  <MenuItem value="MECH">MECH</MenuItem>
+                </Select>
+              </FormControl>
+
+              <Button
+                onClick={() => setShowColumnFilters(!showColumnFilters)}
+                startIcon={<FilterListIcon />}
+                variant="outlined"
+                size="small"
+                sx={{
+                  color: "text.primary",
+                  borderColor: "grey.300",
+                  "&:hover": {
+                    borderColor: "#667eea",
+                    bgcolor: "rgba(102, 126, 234, 0.1)",
+                  },
+                }}
+              >
+                Column Filters
+              </Button>
+              <Button
+                aria-label="Add skill"
+                onClick={addSkillColumn}
+                startIcon={
+                  isLoading ? (
+                    <Skeleton variant="rectangular" height={400} />
+                  ) : (
+                    <AddIcon />
+                  )
+                }
+                variant="contained"
+                sx={{
+                  ml: "auto",
+                  bgcolor: "#4CAF50",
+                  color: "white",
+                  "&:hover": { bgcolor: "#45a049" },
+                  boxShadow: "0 2px 8px rgba(76, 175, 80, 0.3)",
+                }}
+                disabled={isLoading}
+              >
+                Add Skill
+              </Button>
+            </Box>
+          </Card>
         </Box>
 
         {/* Enhanced Menu */}
@@ -759,7 +629,7 @@ const StudentSkillsTable = () => {
         </Menu>
 
         {/* Enhanced Table */}
-        <Box sx={{ position: "relative" }}>
+        <Box sx={{ position: "relative", mt: 3 }}>
           {/* Fixed Columns */}
           <Box sx={{ display: "flex" }}>
             <Box
@@ -785,9 +655,14 @@ const StudentSkillsTable = () => {
                         }}
                       >
                         <Box
-                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1,
+                          }}
                         >
-                          Total Levels
+                          TOTAL LEVEL
                         </Box>
                       </TableCell>
                       <TableCell
@@ -802,9 +677,14 @@ const StudentSkillsTable = () => {
                         }}
                       >
                         <Box
-                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1,
+                          }}
                         >
-                          Completed
+                          COMPLETEDthe 
                         </Box>
                       </TableCell>
                       <TableCell
@@ -818,7 +698,7 @@ const StudentSkillsTable = () => {
                           textAlign: "center",
                         }}
                       >
-                        Name
+                        NAME
                       </TableCell>
                       <TableCell
                         sx={{
@@ -831,16 +711,15 @@ const StudentSkillsTable = () => {
                           textAlign: "center",
                         }}
                       >
-                        Reg No
+                        REG NO
                       </TableCell>
-                    
                     </TableRow>
 
                     {showColumnFilters && (
-                      <TableRow >
+                      <TableRow>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -848,8 +727,8 @@ const StudentSkillsTable = () => {
                           }}
                         ></TableCell>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -857,8 +736,8 @@ const StudentSkillsTable = () => {
                           }}
                         ></TableCell>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -884,8 +763,8 @@ const StudentSkillsTable = () => {
                           />
                         </TableCell>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -897,10 +776,16 @@ const StudentSkillsTable = () => {
                             variant="outlined"
                             fullWidth
                             value={columnFilters.regNo}
-                            onChange={(e) => handleSearchChange('name', e.target.value)}
+                            onChange={(e) =>
+                              handleSearchChange("regNo", e.target.value)
+                            }
+                            InputProps={{
+                              startAdornment: (
+                                <SearchIcon fontSize="small" color="action" />
+                              ),
+                            }}
                           />
                         </TableCell>
-                       
                       </TableRow>
                     )}
                   </TableHead>
@@ -916,8 +801,8 @@ const StudentSkillsTable = () => {
                         }}
                       >
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -932,8 +817,8 @@ const StudentSkillsTable = () => {
                           />
                         </TableCell>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -949,8 +834,8 @@ const StudentSkillsTable = () => {
                           />
                         </TableCell>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -974,8 +859,8 @@ const StudentSkillsTable = () => {
                           </Box>
                         </TableCell>
                         <TableCell
-                          sx={{ 
-                            borderRight: 1, 
+                          sx={{
+                            borderRight: 1,
                             borderColor: "grey.200",
                             height: 60,
                             verticalAlign: "middle",
@@ -997,7 +882,34 @@ const StudentSkillsTable = () => {
             </Box>
 
             {/* Scrollable Skills Section */}
-            <Box sx={{ flexGrow: 1, overflowX: "auto" }}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                overflowX: "auto",
+                // Professional custom scrollbar
+                "&::-webkit-scrollbar": {
+                  height: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f1f3f4",
+                  borderRadius: "10px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#c1c8cd",
+                  borderRadius: "10px",
+                  border: "2px solid #f1f3f4",
+                  "&:hover": {
+                    backgroundColor: "#a8b1ba",
+                  },
+                },
+                "&::-webkit-scrollbar-corner": {
+                  backgroundColor: "#f1f3f4",
+                },
+                // Firefox scrollbar
+                scrollbarWidth: "thin",
+                scrollbarColor: "#c1c8cd #f1f3f4",
+              }}
+            >
               <TableContainer>
                 <Table
                   sx={{
@@ -1051,12 +963,22 @@ const StudentSkillsTable = () => {
                                     position: "absolute",
                                     top: skill.selectedSkill ? -8 : "50%",
                                     left: 12,
-                                    transform: skill.selectedSkill ? "translateY(0)" : "translateY(-50%)",
-                                    bgcolor: skill.selectedSkill ? "white" : "transparent",
+                                    transform: skill.selectedSkill
+                                      ? "translateY(0)"
+                                      : "translateY(-50%)",
+                                    bgcolor: skill.selectedSkill
+                                      ? "white"
+                                      : "transparent",
                                     px: skill.selectedSkill ? 1 : 0,
-                                    color: skill.selectedSkill ? skill.color : "text.secondary",
-                                    fontWeight: skill.selectedSkill ? "bold" : "normal",
-                                    fontSize: skill.selectedSkill ? "0.7rem" : "0.875rem",
+                                    color: skill.selectedSkill
+                                      ? "primary.main"
+                                      : "text.secondary",
+                                    fontWeight: skill.selectedSkill
+                                      ? "bold"
+                                      : "normal",
+                                    fontSize: skill.selectedSkill
+                                      ? "0.7rem"
+                                      : "0.875rem",
                                     zIndex: 1,
                                     transition: "all 0.2s ease-in-out",
                                     pointerEvents: "none",
@@ -1064,7 +986,7 @@ const StudentSkillsTable = () => {
                                 >
                                   {skill.name}
                                 </Typography>
-                                
+
                                 <Button
                                   variant="outlined"
                                   onClick={(e) => handleOpenMenu(e, skill.id)}
@@ -1075,27 +997,42 @@ const StudentSkillsTable = () => {
                                     minHeight: 44,
                                     bgcolor: "white",
                                     border: 2,
-                                    borderColor: skill.selectedSkill ? skill.color : "grey.300",
+                                    borderColor: skill.selectedSkill
+                                      ? "primary.main"
+                                      : "grey.300",
                                     borderRadius: 2,
                                     width: "100%",
                                     transition: "all 0.3s ease",
                                     "&:hover": {
-                                      bgcolor: `${skill.color || "grey"}15`,
-                                      borderColor: skill.color || "grey.500",
+                                      bgcolor: "primary.main",
+                                      borderColor: "primary.main",
                                       transform: "translateY(-1px)",
+                                      "& .MuiTypography-root": {
+                                        color: "white !important",
+                                      },
+                                      "& .MuiSvgIcon-root": {
+                                        color: "white !important",
+                                      },
                                     },
                                     "&:focus": {
-                                      borderColor: skill.color || "primary.main",
+                                      borderColor: "primary.main",
                                     },
                                   }}
                                 >
-                                  <Box sx={{ textAlign: "left", width: "100%", pl: skill.selectedSkill ? 0 : 2 }}>
+                                  <Box
+                                    sx={{
+                                      textAlign: "left",
+                                      width: "100%",
+                                      pl: skill.selectedSkill ? 0 : 2,
+                                    }}
+                                  >
                                     {skill.selectedSkill && (
                                       <Typography
                                         variant="body2"
                                         sx={{
                                           fontWeight: "medium",
                                           color: "text.primary",
+                                          transition: "color 0.3s ease",
                                         }}
                                       >
                                         {skill.selectedSkill}
@@ -1137,7 +1074,27 @@ const StudentSkillsTable = () => {
                               height: 60,
                               verticalAlign: "middle",
                             }}
-                          ></TableCell>
+                          >
+                            <TextField
+                              size="small"
+                              placeholder="Search by level"
+                              variant="outlined"
+                              fullWidth
+                              value={skillFilters[skill.id] || ''}
+                              onChange={(e) => handleSkillFilterChange(skill.id, e.target.value)}
+                              type="number"
+                              inputProps={{
+                                min: 0,
+                                max: 10,
+                                step: 1
+                              }}
+                              InputProps={{
+                                startAdornment: (
+                                  <SearchIcon fontSize="small" color="action" />
+                                ),
+                              }}
+                            />
+                          </TableCell>
                         ))}
                       </TableRow>
                     )}
@@ -1165,40 +1122,45 @@ const StudentSkillsTable = () => {
                               verticalAlign: "middle",
                             }}
                           >
-                            {skill.selectedSkill ? (
-                              <SkillInput
-                                value={student.skillLevels[skill.id]}
-                                onChange={(level) =>
-                                  updateSkillLevel(student.id, skill.id, level)
-                                }
-                                skillColor={skill.color}
-                              />
-                            ) : (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  height: 36,
-                                  width: 80,
-                                  margin: "0 auto",
-                                  border: 2,
-                                  borderColor: "grey.300",
-                                  borderRadius: 2,
-                                  backgroundColor: "grey.50",
-                                }}
-                              >
-                                <Typography
-                                  color="text.disabled"
-                                  sx={{ 
-                                    fontStyle: "italic",
-                                    fontSize: "0.875rem",
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "100%",
+                                height: "100%",
+                              }}
+                            >
+                              {skill.selectedSkill ? (
+                                <SkillDisplay
+                                  value={student.skillLevels[skill.id]}
+                                />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    height: 36,
+                                    width: 80,
+                                    border: 2,
+                                    borderColor: "grey.300",
+                                    borderRadius: 2,
+                                    backgroundColor: "grey.50",
                                   }}
                                 >
-                                  -
-                                </Typography>
-                              </Box>
-                            )}
+                                  <Typography
+                                    color="text.disabled"
+                                    sx={{
+                                      fontStyle: "italic",
+                                      fontSize: "0.875rem",
+                                    }}
+                                  >
+                                    -
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
                           </TableCell>
                         ))}
                       </TableRow>

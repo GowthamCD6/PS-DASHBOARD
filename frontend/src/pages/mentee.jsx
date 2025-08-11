@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { debounce } from "lodash";
 import {
   Box,
   Typography,
@@ -26,6 +27,7 @@ import {
   Skeleton,
   Avatar,
   LinearProgress,
+  useTheme,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -38,6 +40,10 @@ import {
   School as SchoolIcon,
   Star as StarIcon,
   Assignment as AssignmentIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  Person as PersonIcon,
+  Badge as BadgeIcon,
 } from "@mui/icons-material";
 
 const MenteeDashboard = () => {
@@ -52,6 +58,13 @@ const MenteeDashboard = () => {
     regNo: "",
     subject: "",
   });
+
+  // Dynamic skill level filters
+  const [skillFilters, setSkillFilters] = useState({});
+
+  const handleSkillFilterChange = debounce((skillId, value) => {
+    setSkillFilters((prev) => ({ ...prev, [skillId]: value }));
+  }, 300);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
@@ -150,15 +163,13 @@ const MenteeDashboard = () => {
     "Git",
   ];
 
-  const skillColors = [
-    '#1976d2', '#2e7d32', '#d32f2f', '#7b1fa2', '#f57c00',
-    '#0288d1', '#388e3c', '#f44336', '#9c27b0', '#ff9800'
-  ];
+
 
   // Optimized filtering with useMemo
   const filteredMentees = useMemo(() => {
     return mentees.filter((mentee) => {
-      return (
+      // Basic filters
+      const basicFilters = (
         mentee.name.toLowerCase().includes(columnFilters.name.toLowerCase()) &&
         mentee.regNo
           .toLowerCase()
@@ -169,8 +180,17 @@ const MenteeDashboard = () => {
         (filters.year === "" || mentee.year === filters.year) &&
         (filters.department === "" || mentee.department === filters.department)
       );
+
+      // Skill level filters
+      const skillLevelFilters = Object.entries(skillFilters).every(([skillId, filterValue]) => {
+        if (!filterValue || filterValue === '') return true;
+        const menteeSkillLevel = mentee.skillLevels[skillId] || 0;
+        return menteeSkillLevel >= parseInt(filterValue);
+      });
+
+      return basicFilters && skillLevelFilters;
     });
-  }, [mentees, columnFilters, filters]);
+  }, [mentees, columnFilters, filters, skillFilters]);
 
   // Mentee statistics calculation
   const stats = useMemo(() => {
@@ -198,7 +218,6 @@ const MenteeDashboard = () => {
         id: `skill${nextSkillNumber}`,
         name: `Skill ${nextSkillNumber}`,
         selectedSkill: "",
-        color: skillColors[nextSkillNumber % skillColors.length]
       };
       setSkillColumns([...skillColumns, newSkill]);
       setIsLoading(false);
@@ -266,6 +285,7 @@ const MenteeDashboard = () => {
   const clearAllFilters = () => {
     setColumnFilters({ name: "", regNo: "", subject: "" });
     setFilters({ year: "", department: "" });
+    setSkillFilters({});
   };
 
   // Enhanced Level Box with progress indicator
@@ -359,7 +379,7 @@ const MenteeDashboard = () => {
   };
 
   // Enhanced Skill Display Component (Read-only)
-  const SkillDisplay = ({ value, skillColor }) => (
+  const SkillDisplay = ({ value }) => (
     <Box
       sx={{
         display: "flex",
@@ -409,7 +429,7 @@ const MenteeDashboard = () => {
         <Box
           sx={{
             p: 3,
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "#667eea",
             color: "white",
           }}
         >
@@ -461,14 +481,14 @@ const MenteeDashboard = () => {
                   backdropFilter: "blur(10px)",
                 }}
               >
-                <CardContent sx={{ p: 2, color: "white", textAlign: "center" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 1 }}>
+                <CardContent sx={{ p: 1.5, color: "white", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 0.5 }}>
                     <SchoolIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                    <Typography variant="caption">My Mentees</Typography>
                   </Box>
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    {stats.totalMentees}
+                     {stats.totalMentees}
                   </Typography>
-                  <Typography variant="caption">My Mentees</Typography>
                 </CardContent>
               </Card>
 
@@ -480,13 +500,13 @@ const MenteeDashboard = () => {
                     backdropFilter: "blur(10px)",
                   }}
                 >
-                  <CardContent sx={{ p: 2, color: "white", textAlign: "center" }}>
-                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 1 }}>
+                  <CardContent sx={{ p: 1.5, color: "white", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 0.5 }}>
                       <StarIcon sx={{ mr: 1, fontSize: "1.2rem", color: "#FFD700" }} />
+                      <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                        {stats.topPerformer.name}
+                      </Typography>
                     </Box>
-                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                      {stats.topPerformer.name}
-                    </Typography>
                     <Typography variant="caption">Top Performer</Typography>
                   </CardContent>
                 </Card>
@@ -495,77 +515,32 @@ const MenteeDashboard = () => {
           </Box>
 
           {/* Enhanced Filters */}
-          <Box
+          <Card
             sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              flexWrap: "wrap",
+              bgcolor: "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(10px)",
+              borderRadius: 2,
+              p: 2,
+              mt: 2,
             }}
           >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                flexWrap: "wrap",
+              }}
+            >
             <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel sx={{ color: "white" }}>Year</InputLabel>
+              <InputLabel>Year</InputLabel>
               <Select
                 value={filters.year}
                 label="Year"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, year: e.target.value }))
                 }
-                renderValue={(value) => (
-                  <span style={{ color: 'white' }}>
-                    {value === "" ? "" : `${value} Year`}
-                  </span>
-                )}
-                sx={{
-                  color: "white !important",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.3)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.5)",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.8)",
-                  },
-                  "& .MuiSvgIcon-root": {
-                    color: "white !important",
-                  },
-                  "& .MuiSelect-select": {
-                    color: "white !important",
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255,255,255,0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: "white",
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        color: "text.primary",
-                        "&:hover": {
-                          bgcolor: "rgba(102, 126, 234, 0.1)",
-                          color: "#667eea",
-                        },
-                        "&.Mui-selected": {
-                          bgcolor: "rgba(102, 126, 234, 0.2)",
-                          color: "#667eea",
-                          fontWeight: "bold",
-                          "&:hover": {
-                            bgcolor: "rgba(102, 126, 234, 0.3)",
-                            color: "#667eea",
-                          },
-                        },
-                      },
-                    },
-                  },
-                }}
+                size="small"
               >
                 <MenuItem value="">All Years</MenuItem>
                 <MenuItem value="I">I Year</MenuItem>
@@ -576,68 +551,14 @@ const MenteeDashboard = () => {
             </FormControl>
 
             <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel sx={{ color: "white" }}>Department</InputLabel>
+              <InputLabel>Department</InputLabel>
               <Select
                 value={filters.department}
                 label="Department"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, department: e.target.value }))
                 }
-                renderValue={(value) => (
-                  <span style={{ color: 'white' }}>
-                    {value === "" ? "" : value}
-                  </span>
-                )}
-                sx={{
-                  color: "white !important",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.3)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.5)",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255,255,255,0.8)",
-                  },
-                  "& .MuiSvgIcon-root": {
-                    color: "white !important",
-                  },
-                  "& .MuiSelect-select": {
-                    color: "white !important",
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255,255,255,0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: "white",
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: 2,
-                      mt: 1,
-                      "& .MuiMenuItem-root": {
-                        color: "text.primary",
-                        "&:hover": {
-                          bgcolor: "rgba(102, 126, 234, 0.1)",
-                          color: "#667eea",
-                        },
-                        "&.Mui-selected": {
-                          bgcolor: "rgba(102, 126, 234, 0.2)",
-                          color: "#667eea",
-                          fontWeight: "bold",
-                          "&:hover": {
-                            bgcolor: "rgba(102, 126, 234, 0.3)",
-                            color: "#667eea",
-                          },
-                        },
-                      },
-                    },
-                  },
-                }}
+                size="small"
               >
                 <MenuItem value="">All Departments</MenuItem>
                 <MenuItem value="CSE">CSE</MenuItem>
@@ -654,15 +575,33 @@ const MenteeDashboard = () => {
               variant="outlined"
               size="small"
               sx={{
-                borderColor: "rgba(255,255,255,0.3)",
-                color: "white",
+                color: "text.primary",
+                borderColor: "grey.300",
                 "&:hover": {
-                  borderColor: "white",
-                  bgcolor: "rgba(255,255,255,0.1)",
+                  borderColor: "#667eea",
+                  bgcolor: "rgba(102, 126, 234, 0.1)",
                 },
               }}
             >
               Search Filters
+            </Button>
+
+            <Button
+              onClick={clearAllFilters}
+              startIcon={<ClearIcon />}
+              variant="outlined"
+              size="small"
+              sx={{
+                color: "text.primary",
+                borderColor: "grey.300",
+                "&:hover": {
+                  borderColor: "error.main",
+                  bgcolor: "rgba(211, 47, 47, 0.1)",
+                  color: "error.main",
+                },
+              }}
+            >
+              Clear All Filters
             </Button>
             <Button
               onClick={addSkillColumn}
@@ -672,15 +611,17 @@ const MenteeDashboard = () => {
               variant="contained"
               sx={{
                 ml: "auto",
-                bgcolor: "rgba(255,255,255,0.2)",
-                backdropFilter: "blur(10px)",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                bgcolor: "#4CAF50",
+                color: "white",
+                "&:hover": { bgcolor: "#45a049" },
+                boxShadow: "0 2px 8px rgba(76, 175, 80, 0.3)",
               }}
               disabled={isLoading}
             >
               Add Skill
             </Button>
-          </Box>
+            </Box>
+          </Card>
         </Box>
 
         {/* Enhanced Menu */}
@@ -731,7 +672,7 @@ const MenteeDashboard = () => {
         </Menu>
 
         {/* Enhanced Table */}
-        <Box sx={{ position: "relative" }}>
+        <Box sx={{ position: "relative", mt: 3 }}>
           {/* Fixed Columns */}
           <Box sx={{ display: "flex" }}>
             <Box
@@ -747,59 +688,79 @@ const MenteeDashboard = () => {
                     <TableRow>
                       <TableCell
                         sx={{
-                          fontWeight: "bold",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
                           borderRight: 1,
                           borderColor: "grey.200",
                           width: 100,
                           height: 80,
                           verticalAlign: "middle",
                           textAlign: "center",
+                          bgcolor: "primary.50",
                         }}
                       >
                         <Box
                           sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
                         >
-                          Total Tasks
+                          TOTAL LEVELS
                         </Box>
                       </TableCell>
                       <TableCell
                         sx={{
-                          fontWeight: "bold",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
                           borderRight: 1,
                           borderColor: "grey.200",
                           width: 80,
                           height: 80,
                           verticalAlign: "middle",
                           textAlign: "center",
+                          bgcolor: "success.50",
                         }}
                       >
-                        Completed
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
+                        >
+                          COMPLETED
+                        </Box>
                       </TableCell>
                       <TableCell
                         sx={{
-                          fontWeight: "bold",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
                           borderRight: 1,
                           borderColor: "grey.200",
                           width: 180,
                           height: 80,
                           verticalAlign: "middle",
                           textAlign: "center",
+                          bgcolor: "info.50",
                         }}
                       >
-                        Mentee Name
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
+                        >
+                          MENTEE NAME
+                        </Box>
                       </TableCell>
                       <TableCell
                         sx={{
-                          fontWeight: "bold",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
                           borderRight: 1,
                           borderColor: "grey.200",
                           width: 140,
                           height: 80,
                           verticalAlign: "middle",
                           textAlign: "center",
+                          bgcolor: "warning.50",
                         }}
                       >
-                        Registration No
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
+                        >
+                          REGISTRATION NO
+                        </Box>
                       </TableCell>
                     </TableRow>
 
@@ -870,6 +831,11 @@ const MenteeDashboard = () => {
                                 regNo: e.target.value,
                               }))
                             }
+                            InputProps={{
+                              startAdornment: (
+                                <SearchIcon fontSize="small" color="action" />
+                              ),
+                            }}
                           />
                         </TableCell>
                       </TableRow>
@@ -960,7 +926,34 @@ const MenteeDashboard = () => {
             </Box>
 
             {/* Scrollable Skills Section */}
-            <Box sx={{ flexGrow: 1, overflowX: "auto" }}>
+            <Box 
+              sx={{ 
+                flexGrow: 1, 
+                overflowX: "auto",
+                // Professional custom scrollbar
+                "&::-webkit-scrollbar": {
+                  height: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "#f1f3f4",
+                  borderRadius: "10px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#c1c8cd",
+                  borderRadius: "10px",
+                  border: "2px solid #f1f3f4",
+                  "&:hover": {
+                    backgroundColor: "#a8b1ba",
+                  },
+                },
+                "&::-webkit-scrollbar-corner": {
+                  backgroundColor: "#f1f3f4",
+                },
+                // Firefox scrollbar
+                scrollbarWidth: "thin",
+                scrollbarColor: "#c1c8cd #f1f3f4",
+              }}
+            >
               <TableContainer>
                 <Table
                   sx={{
@@ -1016,7 +1009,7 @@ const MenteeDashboard = () => {
                                     transform: skill.selectedSkill ? "translateY(0)" : "translateY(-50%)",
                                     bgcolor: skill.selectedSkill ? "white" : "transparent",
                                     px: skill.selectedSkill ? 1 : 0,
-                                    color: skill.selectedSkill ? skill.color : "text.secondary",
+                                    color: skill.selectedSkill ? "primary.main" : "text.secondary",
                                     fontWeight: skill.selectedSkill ? "bold" : "normal",
                                     fontSize: skill.selectedSkill ? "0.7rem" : "0.875rem",
                                     zIndex: 1,
@@ -1037,17 +1030,23 @@ const MenteeDashboard = () => {
                                     minHeight: 44,
                                     bgcolor: "white",
                                     border: 2,
-                                    borderColor: skill.selectedSkill ? skill.color : "grey.300",
+                                    borderColor: skill.selectedSkill ? "primary.main" : "grey.300",
                                     borderRadius: 2,
                                     width: "100%",
                                     transition: "all 0.3s ease",
                                     "&:hover": {
-                                      bgcolor: `${skill.color || "grey"}15`,
-                                      borderColor: skill.color || "grey.500",
+                                      bgcolor: "primary.main",
+                                      borderColor: "primary.main",
                                       transform: "translateY(-1px)",
+                                      "& .MuiTypography-root": {
+                                        color: "white !important",
+                                      },
+                                      "& .MuiSvgIcon-root": {
+                                        color: "white !important",
+                                      },
                                     },
                                     "&:focus": {
-                                      borderColor: skill.color || "primary.main",
+                                      borderColor: "primary.main",
                                     },
                                   }}
                                 >
@@ -1058,6 +1057,7 @@ const MenteeDashboard = () => {
                                         sx={{
                                           fontWeight: "medium",
                                           color: "text.primary",
+                                          transition: "color 0.3s ease",
                                         }}
                                       >
                                         {skill.selectedSkill}
@@ -1099,7 +1099,27 @@ const MenteeDashboard = () => {
                               height: 60,
                               verticalAlign: "middle",
                             }}
-                          ></TableCell>
+                          >
+                            <TextField
+                              size="small"
+                              placeholder="Search by level..."
+                              variant="outlined"
+                              fullWidth
+                              value={skillFilters[skill.id] || ''}
+                              onChange={(e) => handleSkillFilterChange(skill.id, e.target.value)}
+                              type="number"
+                              inputProps={{
+                                min: 0,
+                                max: 100,
+                                step: 1
+                              }}
+                              InputProps={{
+                                startAdornment: (
+                                  <SearchIcon fontSize="small" color="action" />
+                                ),
+                              }}
+                            />
+                          </TableCell>
                         ))}
                       </TableRow>
                     )}
@@ -1130,7 +1150,6 @@ const MenteeDashboard = () => {
                             {skill.selectedSkill ? (
                               <SkillDisplay
                                 value={mentee.skillLevels[skill.id]}
-                                skillColor={skill.color}
                               />
                             ) : (
                               <Box
