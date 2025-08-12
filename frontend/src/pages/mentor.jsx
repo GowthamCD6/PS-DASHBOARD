@@ -67,6 +67,7 @@ import {
   ViewList as ViewListIcon,
   AccountTree as AccountTreeIcon
 } from '@mui/icons-material';
+import AddMentor from '../components/Modals/AddMentor';
 
 const MentorManagementSystem = () => {
   // View mode state
@@ -231,16 +232,6 @@ const MentorManagementSystem = () => {
   const [openNewMentorDialog, setOpenNewMentorDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedMentor, setSelectedMentor] = useState(null);
-  const [newMentor, setNewMentor] = useState({
-    name: '',
-    department: '',
-    type: '',
-    role: '',
-    expertise: [],
-    email: '',
-    phone: '',
-    maxStudents: ''
-  });
   const [mentorRole, setMentorRole] = useState('');
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -252,13 +243,12 @@ const MentorManagementSystem = () => {
 
   // Filters for both views
   const [filters, setFilters] = useState({
-    mentorType: '',
     department: '',
     searchQuery: '',
     minStudents: '',
     maxStudents: '',
     year: '',
-    mentorId: ''
+    mentorName: ''
   });
 
   // Mentor role options
@@ -351,12 +341,16 @@ const MentorManagementSystem = () => {
   // Filtered mentors based on search criteria (mapping view)
   const filteredMentors = useMemo(() => {
     if (viewMode === 'mapping') {
-      return mentors.filter(mentor => {
+      // Per user request, only show newly added mentors in the mapping view.
+      // We identify new mentors as those with an ID greater than the original set.
+      const maxOriginalMentorId = 4; 
+      const newMentors = mentors.filter(mentor => mentor.id > maxOriginalMentorId);
+
+      return newMentors.filter(mentor => {
         const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
         const studentCount = assignedStudents.length;
         
         return (
-          (!filters.mentorType || mentor.type === filters.mentorType) &&
           (!filters.department || mentor.department === filters.department) &&
           (!filters.searchQuery || 
             mentor.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
@@ -376,8 +370,7 @@ const MentorManagementSystem = () => {
         return (
           (!filters.department || student.department.includes(filters.department)) &&
           (!filters.year || student.year === filters.year) &&
-          (!filters.mentorId || student.mentors?.some(m => m.id === Number(filters.mentorId))) &&
-          (!filters.mentorType || student.mentors?.some(m => m.type === filters.mentorType)) &&
+          (!filters.mentorName || student.mentors?.some(m => m.name.toLowerCase().includes(filters.mentorName.toLowerCase()))) &&
           (!filters.searchQuery || 
             student.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
             student.regNo.toLowerCase().includes(filters.searchQuery.toLowerCase()))
@@ -493,31 +486,22 @@ const MentorManagementSystem = () => {
   };
 
   // Handle adding new mentor
-  const handleAddNewMentor = () => {
+  const handleAddNewMentor = (newMentorData) => {
     const newId = Math.max(...mentors.map(m => m.id), 0) + 1;
     const mentorToAdd = {
-      ...newMentor,
+      ...newMentorData,
       id: newId,
       currentStudents: 0,
-      maxStudents: parseInt(newMentor.maxStudents) || 5,
-      expertise: typeof newMentor.expertise === 'string' 
-        ? newMentor.expertise.split(',').map(item => item.trim())
-        : newMentor.expertise
+      maxStudents: parseInt(newMentorData.maxStudents) || 5,
+      expertise: typeof newMentorData.expertise === 'string' 
+        ? newMentorData.expertise.split(',').map(item => item.trim())
+        : newMentorData.expertise
     };
 
     setMentors([...mentors, mentorToAdd]);
     setOpenNewMentorDialog(false);
-    setNewMentor({
-      name: '',
-      department: '',
-      type: '',
-      role: '',
-      expertise: [],
-      email: '',
-      phone: '',
-      maxStudents: ''
-    });
     showNotification('New mentor added successfully');
+    setViewMode('mapping');
   };
 
   // Filter mentors available for assignment (not already assigned to this student)
@@ -542,7 +526,7 @@ const MentorManagementSystem = () => {
         sx={{ 
           p: { xs: 2, sm: 3 },
           mb: 3,
-          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+          background: "#667eea",
           color: 'white',
           borderRadius: '12px'
         }}
@@ -697,37 +681,18 @@ const MentorManagementSystem = () => {
                   <MenuItem value="IV">IV Year</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
-                <InputLabel>Mentor</InputLabel>
-                <Select
-                  value={filters.mentorId}
-                  label="Mentor"
-                  onChange={(e) => setFilters(prev => ({ ...prev, mentorId: e.target.value }))}
-                  sx={{ backgroundColor: 'white' }}
-                >
-                  <MenuItem value="">All Mentors</MenuItem>
-                  {mentors.map(mentor => (
-                    <MenuItem key={mentor.id} value={mentor.id}>{mentor.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                label="Search Mentor"
+                size="small"
+                value={filters.mentorName}
+                onChange={(e) => setFilters(prev => ({ ...prev, mentorName: e.target.value }))}
+                sx={{ 
+                  backgroundColor: 'white',
+                  minWidth: { xs: '100%', sm: 180 }
+                }}
+              />
             </>
           )}
-
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }}>
-            <InputLabel>Mentor Type</InputLabel>
-            <Select
-              value={filters.mentorType}
-              label="Mentor Type"
-              onChange={(e) => setFilters(prev => ({ ...prev, mentorType: e.target.value }))}
-              sx={{ backgroundColor: 'white' }}
-            >
-              <MenuItem value="">All Types</MenuItem>
-              {mentorTypes.map(type => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
 
           {viewMode === 'mapping' && (
             <>
@@ -779,7 +744,6 @@ const MentorManagementSystem = () => {
                   <TableCell sx={{ fontWeight: 600 }}>Reg No</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Year</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Assigned Mentors</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                 </TableRow>
@@ -792,13 +756,12 @@ const MentorManagementSystem = () => {
                       <TableCell><Skeleton /></TableCell>
                       <TableCell><Skeleton /></TableCell>
                       <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
                       <TableCell><Skeleton width={100} /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredStudents.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                       <Typography color="text.secondary">
                         No students found matching your criteria
                       </Typography>
@@ -822,20 +785,19 @@ const MentorManagementSystem = () => {
                         </Box>
                       </TableCell>
                       <TableCell>{student.department}</TableCell>
-                      <TableCell>{student.year}</TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          {(student.mentors || []).map((mentor) => (
+                          {(student.mentors || []).map((mentor, index) => (
                             <Tooltip 
                               key={`${mentor.id}-${mentor.role}`} 
                               title={`${mentor.role} (${mentor.type})`}
                             >
                               <Chip
                                 label={`${mentor.name}`}
-                                onDelete={() => {
+                                onDelete={index > 0 ? () => {
                                   handleRemoveMentor(student.id, mentor.id);
                                   showNotification('Mentor removed successfully');
-                                }}
+                                } : undefined}
                                 onClick={() => handleOpenMentorDialog(mentors.find(m => m.id === mentor.id))}
                                 color={
                                   mentor.type === 'Faculty' ? 'primary' : 
@@ -1218,203 +1180,11 @@ const MentorManagementSystem = () => {
 
       {/* Add New Mentor Dialog - Only for Assignment View */}
       {viewMode === 'assignment' && (
-        <Dialog 
-          open={openNewMentorDialog} 
+        <AddMentor 
+          open={openNewMentorDialog}
           onClose={() => setOpenNewMentorDialog(false)}
-          PaperProps={{
-            sx: { borderRadius: '12px' }
-          }}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle sx={{ 
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            pb: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1
-          }}>
-            <Avatar sx={{ 
-              bgcolor: 'primary.main',
-              width: 40,
-              height: 40
-            }}>
-              <PersonIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h6">Add New Mentor</Typography>
-              <Typography variant="caption" color="text.secondary">
-                Enter mentor details to add them to the system
-              </Typography>
-            </Box>
-          </DialogTitle>
-          <DialogContent sx={{ mt: 2 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  value={newMentor.name}
-                  onChange={(e) => setNewMentor({ ...newMentor, name: e.target.value })}
-                  size="small"
-                  required
-                />
-                <FormControl fullWidth size="small" required>
-                  <InputLabel>Mentor Type</InputLabel>
-                  <Select
-                    value={newMentor.type}
-                    label="Mentor Type"
-                    onChange={(e) => setNewMentor({ ...newMentor, type: e.target.value })}
-                  >
-                    {mentorTypes.map(type => (
-                      <MenuItem key={type} value={type}>{type}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <FormControl fullWidth size="small" required>
-                  <InputLabel>Department</InputLabel>
-                  <Select
-                    value={newMentor.department}
-                    label="Department"
-                    onChange={(e) => setNewMentor({ ...newMentor, department: e.target.value })}
-                  >
-                    <MenuItem value="Computer Science">Computer Science</MenuItem>
-                    <MenuItem value="Electronics">Electronics</MenuItem>
-                    <MenuItem value="Mechanical">Mechanical</MenuItem>
-                    <MenuItem value="Electrical">Electrical</MenuItem>
-                    <MenuItem value="Industry">Industry</MenuItem>
-                  </Select>
-                </FormControl>
-                <TextField
-                  fullWidth
-                  label="Role/Position"
-                  value={newMentor.role}
-                  onChange={(e) => setNewMentor({ ...newMentor, role: e.target.value })}
-                  placeholder="e.g., Professor, Senior Developer"
-                  size="small"
-                  required
-                />
-              </Box>
-
-              <TextField
-                fullWidth
-                label="Areas of Expertise"
-                value={newMentor.expertise}
-                onChange={(e) => setNewMentor({ ...newMentor, expertise: e.target.value })}
-                placeholder="Comma separated: e.g., AI/ML, Web Development"
-                size="small"
-                required
-                multiline
-                rows={2}
-              />
-
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  value={newMentor.email}
-                  onChange={(e) => setNewMentor({ ...newMentor, email: e.target.value })}
-                  size="small"
-                  required
-                  InputProps={{
-                    startAdornment: <MailIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  label="Phone"
-                  value={newMentor.phone}
-                  onChange={(e) => setNewMentor({ ...newMentor, phone: e.target.value })}
-                  size="small"
-                  required
-                  InputProps={{
-                    startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ 
-                backgroundColor: '#f8f9fa',
-                p: 2,
-                borderRadius: '8px',
-                borderLeft: '4px solid',
-                borderColor: 'primary.main'
-              }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Student Capacity
-                </Typography>
-                <TextField
-                  fullWidth
-                  label="Maximum Students"
-                  type="number"
-                  value={newMentor.maxStudents}
-                  onChange={(e) => setNewMentor({ ...newMentor, maxStudents: e.target.value })}
-                  size="small"
-                  required
-                  InputProps={{ 
-                    inputProps: { min: 1 },
-                    startAdornment: <SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                  }}
-                  helperText="Maximum number of students this mentor can supervise"
-                />
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ 
-            p: 3,
-            borderTop: '1px solid',
-            borderColor: 'divider'
-          }}>
-            <Button 
-              onClick={() => {
-                setOpenNewMentorDialog(false);
-                setNewMentor({
-                  name: '',
-                  department: '',
-                  type: '',
-                  role: '',
-                  expertise: [],
-                  email: '',
-                  phone: '',
-                  maxStudents: ''
-                });
-              }}
-              sx={{ 
-                borderRadius: '8px',
-                textTransform: 'none'
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleAddNewMentor}
-              variant="contained"
-              disabled={
-                !newMentor.name || 
-                !newMentor.department || 
-                !newMentor.type || 
-                !newMentor.role ||
-                !newMentor.email ||
-                !newMentor.phone ||
-                !newMentor.maxStudents
-              }
-              sx={{ 
-                borderRadius: '8px',
-                boxShadow: 'none',
-                textTransform: 'none',
-                px: 3,
-                '&:hover': { boxShadow: 'none' }
-              }}
-            >
-              Add Mentor
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onAddMentor={handleAddNewMentor}
+        />
       )}
 
       {/* Mentor Info Dialog */}
