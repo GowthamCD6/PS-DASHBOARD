@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const createError = require("http-errors");
 const app = express();
 const PORT = process.env.PORT || 3000;
+const authRoute = require("./routes/authRoutes");
 
 app.use(cors({
         origin: "http://localhost:5173", // Vite's default port
@@ -16,6 +17,7 @@ app.use(cors({
 ));
 app.use(morgan('dev'));
 app.use(bodyParser.json());
+app.use('/',authRoute);
 
 
 app.use((req,res,next) => {
