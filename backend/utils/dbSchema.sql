@@ -64,12 +64,13 @@ CREATE TABLE s_register (
         ON UPDATE CASCADE
 );
 
--- 7. master_relationship_user
-CREATE TABLE master_relationship_user (
+-- 7. master_relationship_mapping
+CREATE TABLE master_relationship_mapping (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    relation VARCHAR(50) NOT NULL,
-    user_id INT NOT NULL,
-    relation_user INT NOT NULL,
+    relationship VARCHAR(50) NOT NULL,
+    user varchar(15) NOT NULL,
+    relation_user varchar(15) NOT NULL,
+    status enum(0,1) not null,
     FOREIGN KEY (user_id) REFERENCES master_user(id)
         ON DELETE CASCADE 
         ON UPDATE CASCADE,
