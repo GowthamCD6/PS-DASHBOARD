@@ -1,28 +1,37 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const authRoutes = require('./routes/authRoutes');
-const studentRoutes = require('./routes/studentRoutes');
-const skillRoutes = require('./routes/skillRoutes');
-
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const bodyParser = require("body-parser");
+const createError = require("http-errors");
 const app = express();
+const PORT = process.env.PORT || 3000;
+const authRoute = require("./routes/authRoutes");
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+        origin: "http://localhost:5173", // Vite's default port
+        credentials: true, // accepts cookie's from frontend
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
+        allowedHeaders: ["Content-Type", "Authorization"]
+    }
+));
+app.use(morgan('dev'));
+app.use(bodyParser.json());
+app.use('/',authRoute);
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/students', studentRoutes);
-app.use('/api/skills', skillRoutes);
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-});
+app.use((req,res,next) => {
+    next(createError.NotFound("api do not found"));
+})
 
-const PORT = process.env.PORT || 7000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.use((error,req,res,next) => {
+    res.status(error.status || 500);
+    res.send({
+        error:{
+            status: error.status || 500,
+            message: error.message
+        }
+    })
+})
+
+app.listen(PORT, () => console.log("Server is running on http://localhost:"+PORT));
