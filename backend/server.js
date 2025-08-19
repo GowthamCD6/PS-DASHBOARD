@@ -7,6 +7,8 @@ const createError = require("http-errors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const authRoute = require("./routes/authRoutes");
+const getRoute = require("./routes/getRoute");
+const postRoute = require("./routes/postRoute");
 
 app.use(cors({
         origin: "http://localhost:5173", // Vite's default port
@@ -18,6 +20,8 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use('/',authRoute);
+app.use('/',getRoute);
+app.use('/',postRoute);
 
 
 app.use((req,res,next) => {
