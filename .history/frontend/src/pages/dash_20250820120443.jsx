@@ -768,7 +768,7 @@ const Dash = () => {
             </FormControl>
 
             {/* Department Filter */}
-            <FormControl sx={{ minWidth: 230 }}>
+            <FormControl sx={{ minWidth: 0 }}>
               <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
               <Select
                 labelId="department-select-label"
