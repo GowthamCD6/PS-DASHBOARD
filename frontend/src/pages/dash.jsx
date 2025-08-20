@@ -13,14 +13,14 @@ import {
 const initialStudents = [
   {
     id: 1,
-    name: 'Jon Snow',//
-    regNo: '2021CSE001',//
-    department: 'CSE',// |
-    year: 'III',// |
-    totalLevels: 10, //
-    completedLevels: 7, //
-    cumulativeRewards: 850, // 
-    currentSemRewards: 120, //  |
+    name: "Jon Snow",
+    regNo: "2021CSE001",
+    department: "CSE",
+    year: "III",
+    totalLevels: 10,
+    completedLevels: 7,
+    cumulativeRewards: 850,
+    currentSemRewards: 120,
     skills: {
       JavaScript: { level: 8, daysAgo: 3 },
       Python: { level: 6, daysAgo: 7 },
