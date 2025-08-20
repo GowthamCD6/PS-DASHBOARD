@@ -65,16 +65,16 @@ CREATE TABLE s_register (
 );
 
 -- 7. master_relationship_mapping
-CREATE TABLE master_relationship_mapping (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    relationship VARCHAR(50) NOT NULL,
-    user varchar(15) NOT NULL,
-    relation_user varchar(15) NOT NULL,
-    status enum(0,1) not null,
-    FOREIGN KEY (user_id) REFERENCES master_user(id)
-        ON DELETE CASCADE 
-        ON UPDATE CASCADE,
-    FOREIGN KEY (relation_user) REFERENCES master_user(id)
-        ON DELETE CASCADE 
-        ON UPDATE CASCADE
-);
+    CREATE TABLE master_relationship_mapping (
+        id INT AUTO_INCREMENT PRIMARY KEY, -- relation id
+        relationship VARCHAR(50) NOT NULL,
+        user INT NOT NULL, -- user in master_user table (1)
+        relation_user INT NOT NULL, -- user in master_user table (2) => if (1,2) -> 1 mentors 2
+        status enum('0','1') not null,
+        FOREIGN KEY (user) REFERENCES master_user(id)
+            ON DELETE CASCADE 
+            ON UPDATE CASCADE,
+        FOREIGN KEY (relation_user) REFERENCES master_user(id)
+            ON DELETE CASCADE 
+            ON UPDATE CASCADE
+    );
