@@ -699,112 +699,67 @@ const Dash = () => {
         <div style={styles.filtersRow}>
           <div style={styles.filtersLeft}>
             {/* Role Filter */}
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel id="role-select-label">ROLE</InputLabel>
-              <Select
-                labelId="role-select-label"
-                id="role-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>ROLE</label>
+              <select
+                style={styles.select}
                 value={filters.role}
-                label="ROLE"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, role: e.target.value }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="hod">HOD</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Roles</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="hod">HOD</option>
+              </select>
+            </div>
 
             {/* Year Filter */}
-            <FormControl sx={{ minWidth: 140 }}>
-              <InputLabel id="year-select-label">YEAR</InputLabel>
-              <Select
-                labelId="year-select-label"
-                id="year-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>YEAR</label>
+              <select
+                style={styles.select}
                 value={filters.year}
-                label="YEAR"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, year: e.target.value }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Years</MenuItem>
-                <MenuItem value="I">I Year</MenuItem>
-                <MenuItem value="II">II Year</MenuItem>
-                <MenuItem value="III">III Year</MenuItem>
-                <MenuItem value="IV">IV Year</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Years</option>
+                <option value="I">I Year</option>
+                <option value="II">II Year</option>
+                <option value="III">III Year</option>
+                <option value="IV">IV Year</option>
+              </select>
+            </div>
 
             {/* Department Filter */}
-            <FormControl sx={{ minWidth: 230 }}>
-              <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
-              <Select
-                labelId="department-select-label"
-                id="department-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>DEPARTMENT</label>
+              <select
+                style={{ ...styles.select, minWidth: "160px" }}
                 value={filters.department}
-                label="DEPARTMENT"
                 onChange={(e) =>
                   setFilters((prev) => ({
                     ...prev,
                     department: e.target.value,
                   }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Departments</option>
+                <option value="CSE">CSE</option>
+                <option value="IT">IT</option>
+                <option value="ECE">ECE</option>
+                <option value="EEE">EEE</option>
+                <option value="MECH">MECH</option>
+              </select>
+            </div>
           </div>
 
           {/* Add Skill Button */}

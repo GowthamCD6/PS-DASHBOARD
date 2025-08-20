@@ -19,14 +19,11 @@ import {
   Popover,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import AddIcon from '@mui/icons-material/Add';
 
 const initialStudents = [
   {
@@ -155,10 +152,6 @@ const Dash = () => {
   // MUI Popover states
   const [cumulativeAnchorEl, setCumulativeAnchorEl] = useState(null);
   const [cumulativePopoverFilter, setCumulativePopoverFilter] = useState({ type: 'all', value: '' });
-  const [currentSemAnchorEl, setCurrentSemAnchorEl] = useState(null);
-  const [currentSemPopoverFilter, setCurrentSemPopoverFilter] = useState({ type: 'all', value: '' });
-  const [nameAnchorEl, setNameAnchorEl] = useState(null);
-  const [regNoAnchorEl, setRegNoAnchorEl] = useState(null);
 
   // MUI Popover handlers
   const handleCumulativeOpen = (event) => setCumulativeAnchorEl(event.currentTarget);
@@ -175,27 +168,6 @@ const Dash = () => {
     setCumulativeFilter({ type: 'all', value: '' });
     handleCumulativeClose();
   };
-
-  const handleCurrentSemOpen = (event) => setCurrentSemAnchorEl(event.currentTarget);
-  const handleCurrentSemClose = () => setCurrentSemAnchorEl(null);
-  const handleCurrentSemApply = () => {
-    setCurrentSemFilter({
-      type: currentSemPopoverFilter.type,
-      value: currentSemPopoverFilter.value
-    });
-    handleCurrentSemClose();
-  };
-  const handleCurrentSemClear = () => {
-    setCurrentSemPopoverFilter({ type: 'all', value: '' });
-    setCurrentSemFilter({ type: 'all', value: '' });
-    handleCurrentSemClose();
-  };
-
-  const handleNameOpen = (event) => setNameAnchorEl(event.currentTarget);
-  const handleNameClose = () => setNameAnchorEl(null);
-
-  const handleRegNoOpen = (event) => setRegNoAnchorEl(event.currentTarget);
-  const handleRegNoClose = () => setRegNoAnchorEl(null);
 
   // Click outside handler
   useEffect(() => {
@@ -699,137 +671,83 @@ const Dash = () => {
         <div style={styles.filtersRow}>
           <div style={styles.filtersLeft}>
             {/* Role Filter */}
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel id="role-select-label">ROLE</InputLabel>
-              <Select
-                labelId="role-select-label"
-                id="role-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>ROLE</label>
+              <select
+                style={styles.select}
                 value={filters.role}
-                label="ROLE"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, role: e.target.value }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="hod">HOD</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Roles</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="hod">HOD</option>
+              </select>
+            </div>
 
             {/* Year Filter */}
-            <FormControl sx={{ minWidth: 140 }}>
-              <InputLabel id="year-select-label">YEAR</InputLabel>
-              <Select
-                labelId="year-select-label"
-                id="year-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>YEAR</label>
+              <select
+                style={styles.select}
                 value={filters.year}
-                label="YEAR"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, year: e.target.value }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Years</MenuItem>
-                <MenuItem value="I">I Year</MenuItem>
-                <MenuItem value="II">II Year</MenuItem>
-                <MenuItem value="III">III Year</MenuItem>
-                <MenuItem value="IV">IV Year</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Years</option>
+                <option value="I">I Year</option>
+                <option value="II">II Year</option>
+                <option value="III">III Year</option>
+                <option value="IV">IV Year</option>
+              </select>
+            </div>
 
             {/* Department Filter */}
-            <FormControl sx={{ minWidth: 230 }}>
-              <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
-              <Select
-                labelId="department-select-label"
-                id="department-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>DEPARTMENT</label>
+              <select
+                style={{ ...styles.select, minWidth: "160px" }}
                 value={filters.department}
-                label="DEPARTMENT"
                 onChange={(e) =>
                   setFilters((prev) => ({
                     ...prev,
                     department: e.target.value,
                   }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Departments</option>
+                <option value="CSE">CSE</option>
+                <option value="IT">IT</option>
+                <option value="ECE">ECE</option>
+                <option value="EEE">EEE</option>
+                <option value="MECH">MECH</option>
+              </select>
+            </div>
           </div>
 
           {/* Add Skill Button */}
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
+          <button
             onClick={addSkillColumn}
-            sx={{
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              padding: '12px 20px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              textTransform: 'none',
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                backgroundColor: '#2563eb',
-                boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-              },
-            }}
+            style={styles.addButton}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.backgroundColor = "#2563eb")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.backgroundColor = "#3b82f6")
+            }
           >
+            <Plus size={16} />
             Add Skill Column
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -856,258 +774,58 @@ const Dash = () => {
                 </th>
 
                 {/* Name */}
-                <TableCell
-                  sx={{
-                    fontWeight: 'bold',
-                    backgroundColor: '#f8fafc',
-                    padding: '16px 32px',
-                    fontSize: '12px',
-                    color: '#475569',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    borderBottom: '1px solid #e2e8f0',
-                    position: 'relative',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                    }}
-                  >
+                <th style={{ ...styles.th, ...styles.thWithFilter }}>
+                  <div style={styles.thContent}>
                     <span>Name</span>
-                    <IconButton
-                      aria-describedby={Boolean(nameAnchorEl) ? 'name-filter-popover' : undefined}
-                      size="small"
-                      onClick={handleNameOpen}
-                      sx={{
-                        padding: '4px',
-                        backgroundColor: 'transparent',
-                        borderRadius: '4px',
-                        color: '#6b7280',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f3f4f6',
-                          color: '#3b82f6',
-                        },
-                        '&:active': {
-                          transform: 'scale(0.95)',
-                        },
-                      }}
-                    >
-                      <FilterListIcon sx={{ fontSize: '14px' }} />
-                    </IconButton>
-                  </Box>
 
-                  <Popover
-                    id={Boolean(nameAnchorEl) ? 'name-filter-popover' : undefined}
-                    open={Boolean(nameAnchorEl)}
-                    anchorEl={nameAnchorEl}
-                    onClose={handleNameClose}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'left',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'left',
-                    }}
-                  >
-                    <Box sx={{ p: 2 }}>
-                      <TextField
+                    {/* This button contains the filter icon */}
+                    <button
+                      onClick={() => setShowNameSearch(!showNameSearch)}
+                      style={styles.filterButton}
+                    >
+                      <Filter size={12} />
+                    </button>
+                  </div>
+
+                  {/* This block will appear/disappear when the button is clicked */}
+                  {showNameSearch && (
+                    <div style={styles.searchPopup} className="filter-popup">
+                      <input
+                        type="text"
                         placeholder="Search by name..."
-                        variant="standard"
+                        style={styles.searchInputPopup}
                         value={nameSearch}
                         onChange={(e) => setNameSearch(e.target.value)}
                         autoFocus
-                        sx={{
-                          '& .MuiInput-underline:before': {
-                            borderBottomColor: '#d1d5db',
-                          },
-                          '& .MuiInput-underline:hover:before': {
-                            borderBottomColor: '#3b82f6',
-                          },
-                          '& .MuiInput-underline:after': {
-                            borderBottomColor: '#3b82f6',
-                          },
-                          '& .MuiInputBase-input': {
-                            fontSize: '14px',
-                            color: '#374151',
-                          },
-                          '& .MuiInputBase-input::placeholder': {
-                            color: '#9ca3af',
-                            opacity: 1,
-                          },
-                        }}
                       />
-                    </Box>
-                  </Popover>
-                </TableCell>
+                    </div>
+                  )}
+                </th>
 
                 {/* Reg No */}
-                <TableCell
-                  sx={{
-                    fontWeight: 'bold',
-                    backgroundColor: '#f8fafc',
-                    padding: '16px 32px',
-                    fontSize: '12px',
-                    color: '#475569',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    borderBottom: '1px solid #e2e8f0',
-                    position: 'relative',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                    }}
-                  >
-                    <span>Reg No</span>
-                    <IconButton
-                      aria-describedby={Boolean(regNoAnchorEl) ? 'reg-no-filter-popover' : undefined}
-                      size="small"
-                      onClick={handleRegNoOpen}
-                      sx={{
-                        padding: '4px',
-                        backgroundColor: 'transparent',
-                        borderRadius: '4px',
-                        color: '#6b7280',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f3f4f6',
-                          color: '#3b82f6',
-                        },
-                        '&:active': {
-                          transform: 'scale(0.95)',
-                        },
-                      }}
+                <th style={{ ...styles.th, ...styles.thWithFilter }}>
+                  <div style={styles.thContent}>
+                    Reg No
+                    <button
+                      onClick={() => setShowRegNoSearch(!showRegNoSearch)}
+                      style={styles.filterButton}
                     >
-                      <FilterListIcon sx={{ fontSize: '14px' }} />
-                    </IconButton>
-                  </Box>
-
-                  <Popover
-                    id={Boolean(regNoAnchorEl) ? 'reg-no-filter-popover' : undefined}
-                    open={Boolean(regNoAnchorEl)}
-                    anchorEl={regNoAnchorEl}
-                    onClose={handleRegNoClose}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'left',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'left',
-                    }}
-                    PaperProps={{
-                      sx: {
-                        borderRadius: '12px',
-                        border: '1px solid #e5e7eb',
-                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03)',
-                        backgroundColor: '#ffffff',
-                        overflow: 'hidden',
-                        minWidth: '280px',
-                      },
-                    }}
-                  >
-                    <Box sx={{
-                      p: 2.5,
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: '#fafbfc'
-                    }}>
-                      <Typography sx={{
-                        fontWeight: '600',
-                        fontSize: '14px',
-                        color: '#1f2937',
-                        margin: 0,
-                        textAlign: 'center'
-                      }}>
-                        Search by Registration Number
-                      </Typography>
-                    </Box>
-                    <Box sx={{ p: 3 }}>
-                      <TextField
-                        placeholder="Enter registration number..."
-                        variant="outlined"
-                        size="small"
+                      <Filter size={12} />
+                    </button>
+                  </div>
+                  {showRegNoSearch && (
+                    <div style={styles.searchPopup} className="filter-popup">
+                      <input
+                        type="text"
+                        placeholder="Search by reg no..."
+                        style={styles.searchInputPopup}
                         value={regNoSearch}
                         onChange={(e) => setRegNoSearch(e.target.value)}
                         autoFocus
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: '#ffffff',
-                            borderRadius: '8px',
-                            '& fieldset': { 
-                              borderColor: '#d1d5db',
-                              transition: 'border-color 0.2s ease'
-                            },
-                            '&:hover fieldset': { 
-                              borderColor: '#3b82f6' 
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: '#3b82f6',
-                              boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
-                            },
-                          },
-                          '& .MuiInputBase-input': {
-                            fontSize: '14px',
-                            color: '#374151',
-                            fontWeight: '500',
-                            padding: '10px 12px',
-                          },
-                          '& .MuiInputBase-input::placeholder': {
-                            color: '#9ca3af',
-                            opacity: 1,
-                            fontWeight: '400',
-                          },
-                        }}
-                        InputProps={{
-                          startAdornment: (
-                            <Box sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              mr: 1,
-                              color: '#6b7280'
-                            }}>
-                              <Search size={16} />
-                            </Box>
-                          ),
-                        }}
                       />
-                      {regNoSearch && (
-                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => setRegNoSearch('')}
-                            sx={{
-                              borderColor: '#d1d5db',
-                              color: '#6b7280',
-                              fontWeight: '500',
-                              textTransform: 'none',
-                              borderRadius: '6px',
-                              padding: '4px 12px',
-                              fontSize: '12px',
-                              '&:hover': {
-                                borderColor: '#9ca3af',
-                                backgroundColor: '#f9fafb',
-                              }
-                            }}
-                          >
-                            Clear
-                          </Button>
-                        </Box>
-                      )}
-                    </Box>
-                  </Popover>
-                </TableCell>
+                    </div>
+                  )}
+                </th>
 
                 {/* Cumulative Rewards */}
                 <TableCell
@@ -1308,202 +1026,66 @@ const Dash = () => {
                 </TableCell>
 
                 {/* Current Sem Rewards */}
-                <TableCell
-                  sx={{
-                    fontWeight: 'bold',
-                    backgroundColor: '#f8fafc',
-                    padding: '16px 32px',
-                    fontSize: '12px',
-                    color: '#475569',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    borderBottom: '1px solid #e2e8f0',
-                    position: 'relative',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                    }}
-                  >
-                    <span style={{ fontWeight: '600', color: '#475569' }}>Current Sem Rewards</span>
-                    <IconButton
-                      size="small"
-                      onClick={handleCurrentSemOpen}
-                      sx={{
-                        padding: '4px',
-                        backgroundColor: 'transparent',
-                        borderRadius: '4px',
-                        color: '#6b7280',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f3f4f6',
-                          color: '#3b82f6',
-                        },
-                        '&:active': {
-                          transform: 'scale(0.95)',
-                        },
-                      }}
+                <th style={{ ...styles.th, ...styles.thWithFilter }}>
+                  <div style={styles.thContent}>
+                    Current Sem Rewards
+                    <button
+                      onClick={() =>
+                        setShowCurrentSemFilter(!showCurrentSemFilter)
+                      }
+                      style={styles.filterButton}
                     >
-                      <FilterListIcon sx={{ fontSize: '14px' }} />
-                    </IconButton>
-                  </Box>
-
-                  <Popover
-                    id={Boolean(currentSemAnchorEl) ? 'current-sem-rewards-popover' : undefined}
-                    open={Boolean(currentSemAnchorEl)}
-                    anchorEl={currentSemAnchorEl}
-                    onClose={handleCurrentSemClose}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
-                    PaperProps={{
-                      sx: {
-                        borderRadius: '12px',
-                        border: '1px solid #e5e7eb',
-                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03)',
-                        minWidth: '300px',
-                        overflow: 'hidden',
-                        backgroundColor: '#ffffff',
-                      },
-                    }}
-                  >
-                    <Box sx={{
-                      p: 3,
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: '#fafbfc'
-                    }}>
-                      <Typography sx={{
-                        fontWeight: '600',
-                        fontSize: '16px',
-                        color: '#1f2937',
-                        margin: 0,
-                        textAlign: 'center'
-                      }}>
-                        Filter Current Sem Rewards
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ p: 3 }}>
-                      <Box
-                        sx={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: 2,
-                        }}
-                      >
-                        {/* Top-Left */}
-                        <Select
-                          size="small"
-                          value={currentSemPopoverFilter.type}
+                      <Filter size={12} />
+                    </button>
+                  </div>
+                  {showCurrentSemFilter && (
+                    <div style={styles.modernFilterPopup} className="filter-popup">
+                      <div style={styles.modernFilterTitle}>
+                        Filter current sem rewards
+                      </div>
+                      <div style={styles.modernFilterRow}>
+                        <select
+                          style={styles.modernFilterSelect}
+                          value={currentSemFilter.type}
                           onChange={(e) =>
-                            setCurrentSemPopoverFilter((prev) => ({ ...prev, type: e.target.value }))
+                            setCurrentSemFilter((prev) => ({
+                              ...prev,
+                              type: e.target.value,
+                            }))
                           }
-                          sx={{
-                            width: '100%',
-                            '& .MuiOutlinedInput-root': {
-                              backgroundColor: '#ffffff',
-                              borderRadius: '8px',
-                              '& fieldset': { borderColor: '#d1d5db' },
-                              '&:hover fieldset': { borderColor: '#3b82f6' },
-                              '&.Mui-focused fieldset': {
-                                borderColor: '#3b82f6',
-                                boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
-                              },
-                            },
-                            '& .MuiSelect-select': { fontWeight: '500', color: '#374151', fontSize: '14px' }
-                          }}
                         >
-                          <MenuItem value="all" sx={{ fontSize: '14px' }}>All</MenuItem>
-                          <MenuItem value="equal" sx={{ fontSize: '14px' }}>Equal to</MenuItem>
-                          <MenuItem value="greater" sx={{ fontSize: '14px' }}>Greater than</MenuItem>
-                          <MenuItem value="less" sx={{ fontSize: '14px' }}>Less than</MenuItem>
-                        </Select>
-
-                        {/* Top-Right */}
-                        <TextField
-                          size="small"
+                          <option value="all">=</option>
+                          <option value="equal">=</option>
+                          <option value="greater">&gt;</option>
+                          <option value="less">&lt;</option>
+                        </select>
+                        <input
                           type="number"
-                          placeholder="Enter value"
-                          value={currentSemPopoverFilter.value}
+                          placeholder="Value"
+                          style={styles.modernFilterInput}
+                          value={currentSemFilter.value}
                           onChange={(e) =>
-                            setCurrentSemPopoverFilter((prev) => ({ ...prev, value: e.target.value }))
+                            setCurrentSemFilter((prev) => ({
+                              ...prev,
+                              value: e.target.value,
+                            }))
                           }
-                          sx={{
-                            width: '100%',
-                            '& .MuiOutlinedInput-root': {
-                              backgroundColor: '#ffffff',
-                              borderRadius: '8px',
-                              '& fieldset': { borderColor: '#d1d5db' },
-                              '&:hover fieldset': { borderColor: '#3b82f6' },
-                              '&.Mui-focused fieldset': {
-                                borderColor: '#3b82f6',
-                                boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
-                              },
-                            },
-                            '& .MuiInputBase-input': { fontWeight: '500', color: '#374151', fontSize: '14px' },
-                            '& .MuiInputBase-input::placeholder': { color: '#9ca3af', opacity: 1 }
-                          }}
                         />
-
-                        {/* Bottom-Left */}
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={handleCurrentSemApply}
-                          sx={{
-                            width: '100%',
-                            backgroundColor: '#3b82f6',
-                            color: 'white',
-                            fontWeight: '500',
-                            textTransform: 'none',
-                            borderRadius: '8px',
-                            padding: '6px 20px',
-                            fontSize: '14px',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                            '&:hover': {
-                              backgroundColor: '#2563eb',
-                              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
-                            }
-                          }}
-                        >
-                          Apply
-                        </Button>
-
-                        {/* Bottom-Right */}
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={handleCurrentSemClear}
-                          sx={{
-                            width: '100%',
-                            borderColor: '#d1d5db',
-                            color: '#6b7280',
-                            fontWeight: '500',
-                            textTransform: 'none',
-                            borderRadius: '8px',
-                            padding: '6px 20px',
-                            fontSize: '14px',
-                            '&:hover': {
-                              borderColor: '#9ca3af',
-                              backgroundColor: '#f9fafb',
-                            }
+                      </div>
+                      <div style={styles.modernFilterButtons}>
+                        <button
+                          style={styles.modernClearButton}
+                          onClick={() => {
+                            setCurrentSemFilter({ type: "all", value: "" });
+                            setShowCurrentSemFilter(false);
                           }}
                         >
                           Clear
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Popover>
-                </TableCell>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </th>
 
                 {/* Skill Columns */}
                 {skillColumns.map((skillCol) => (

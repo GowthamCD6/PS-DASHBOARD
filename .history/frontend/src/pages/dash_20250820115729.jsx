@@ -19,14 +19,11 @@ import {
   Popover,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import AddIcon from '@mui/icons-material/Add';
 
 const initialStudents = [
   {
@@ -699,137 +696,83 @@ const Dash = () => {
         <div style={styles.filtersRow}>
           <div style={styles.filtersLeft}>
             {/* Role Filter */}
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel id="role-select-label">ROLE</InputLabel>
-              <Select
-                labelId="role-select-label"
-                id="role-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>ROLE</label>
+              <select
+                style={styles.select}
                 value={filters.role}
-                label="ROLE"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, role: e.target.value }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="hod">HOD</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Roles</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="hod">HOD</option>
+              </select>
+            </div>
 
             {/* Year Filter */}
-            <FormControl sx={{ minWidth: 140 }}>
-              <InputLabel id="year-select-label">YEAR</InputLabel>
-              <Select
-                labelId="year-select-label"
-                id="year-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>YEAR</label>
+              <select
+                style={styles.select}
                 value={filters.year}
-                label="YEAR"
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, year: e.target.value }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Years</MenuItem>
-                <MenuItem value="I">I Year</MenuItem>
-                <MenuItem value="II">II Year</MenuItem>
-                <MenuItem value="III">III Year</MenuItem>
-                <MenuItem value="IV">IV Year</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Years</option>
+                <option value="I">I Year</option>
+                <option value="II">II Year</option>
+                <option value="III">III Year</option>
+                <option value="IV">IV Year</option>
+              </select>
+            </div>
 
             {/* Department Filter */}
-            <FormControl sx={{ minWidth: 230 }}>
-              <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
-              <Select
-                labelId="department-select-label"
-                id="department-select"
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>DEPARTMENT</label>
+              <select
+                style={{ ...styles.select, minWidth: "160px" }}
                 value={filters.department}
-                label="DEPARTMENT"
                 onChange={(e) =>
                   setFilters((prev) => ({
                     ...prev,
                     department: e.target.value,
                   }))
                 }
-                size="small"
-                sx={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#d1d5db' },
-                    '&:hover fieldset': { borderColor: '#3b82f6' },
-                    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-                  },
-                  '& .MuiSelect-select': {
-                    color: '#334155',
-                    fontWeight: '500',
-                  },
-                }}
+                onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
               >
-                <MenuItem value="all">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
-              </Select>
-            </FormControl>
+                <option value="all">All Departments</option>
+                <option value="CSE">CSE</option>
+                <option value="IT">IT</option>
+                <option value="ECE">ECE</option>
+                <option value="EEE">EEE</option>
+                <option value="MECH">MECH</option>
+              </select>
+            </div>
           </div>
 
           {/* Add Skill Button */}
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
+          <button
             onClick={addSkillColumn}
-            sx={{
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              padding: '12px 20px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              textTransform: 'none',
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                backgroundColor: '#2563eb',
-                boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-              },
-            }}
+            style={styles.addButton}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.backgroundColor = "#2563eb")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.backgroundColor = "#3b82f6")
+            }
           >
+            <Plus size={16} />
             Add Skill Column
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -914,34 +857,106 @@ const Dash = () => {
                       vertical: 'top',
                       horizontal: 'left',
                     }}
+                    PaperProps={{
+                      sx: {
+                        borderRadius: '12px',
+                        border: '1px solid #e5e7eb',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03)',
+                        backgroundColor: '#ffffff',
+                        overflow: 'hidden',
+                        minWidth: '280px',
+                      },
+                    }}
                   >
-                    <Box sx={{ p: 2 }}>
+                    <Box sx={{
+                      p: 2.5,
+                      borderBottom: '1px solid #f1f5f9',
+                      backgroundColor: '#fafbfc'
+                    }}>
+                      <Typography sx={{
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        color: '#1f2937',
+                        margin: 0,
+                        textAlign: 'center'
+                      }}>
+                        Search by Name
+                      </Typography>
+                    </Box>
+                    <Box sx={{ p: 3 }}>
                       <TextField
-                        placeholder="Search by name..."
-                        variant="standard"
+                        placeholder="Enter student name..."
+                        variant="outlined"
+                        size="small"
                         value={nameSearch}
                         onChange={(e) => setNameSearch(e.target.value)}
                         autoFocus
+                        fullWidth
                         sx={{
-                          '& .MuiInput-underline:before': {
-                            borderBottomColor: '#d1d5db',
-                          },
-                          '& .MuiInput-underline:hover:before': {
-                            borderBottomColor: '#3b82f6',
-                          },
-                          '& .MuiInput-underline:after': {
-                            borderBottomColor: '#3b82f6',
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#ffffff',
+                            borderRadius: '8px',
+                            '& fieldset': { 
+                              borderColor: '#d1d5db',
+                              transition: 'border-color 0.2s ease'
+                            },
+                            '&:hover fieldset': { 
+                              borderColor: '#3b82f6' 
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#3b82f6',
+                              boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
+                            },
                           },
                           '& .MuiInputBase-input': {
                             fontSize: '14px',
                             color: '#374151',
+                            fontWeight: '500',
+                            padding: '10px 12px',
                           },
                           '& .MuiInputBase-input::placeholder': {
                             color: '#9ca3af',
                             opacity: 1,
+                            fontWeight: '400',
                           },
                         }}
+                        InputProps={{
+                          startAdornment: (
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              mr: 1,
+                              color: '#6b7280'
+                            }}>
+                              <Search size={16} />
+                            </Box>
+                          ),
+                        }}
                       />
+                      {nameSearch && (
+                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => setNameSearch('')}
+                            sx={{
+                              borderColor: '#d1d5db',
+                              color: '#6b7280',
+                              fontWeight: '500',
+                              textTransform: 'none',
+                              borderRadius: '6px',
+                              padding: '4px 12px',
+                              fontSize: '12px',
+                              '&:hover': {
+                                borderColor: '#9ca3af',
+                                backgroundColor: '#f9fafb',
+                              }
+                            }}
+                          >
+                            Clear
+                          </Button>
+                        </Box>
+                      )}
                     </Box>
                   </Popover>
                 </TableCell>
