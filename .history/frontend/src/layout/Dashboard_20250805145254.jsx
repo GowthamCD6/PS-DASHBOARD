@@ -44,11 +44,11 @@ const NAVIGATION = [
     title: 'mentor allocation',
     icon: <SupervisedUserCircleIcon />,
   },
-  // {
-  //   segment:'student_dashboard',
-  //   title: 'Student dashboard',
-  //   icon: <ManageAccountsIcon/>,
-  // },
+  {
+    segment:'student_dashboard',
+    title: 'Student dashboard',
+    icon: <ManageAccountsIcon/>,
+  },
 
 ];
 
