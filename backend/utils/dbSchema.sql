@@ -10,8 +10,13 @@ CREATE TABLE master_user (
     user_id VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
+    dept INT NOT NULL,
+    year INT NOT NULL,
     type ENUM('student', 'teacher') NOT NULL,
     role INT NOT NULL,
+    FOREIGN KEY (dept) REFERENCES master_dept(id) 
+        ON DELETE RESTRICT 
+        ON UPDATE CASCADE,
     FOREIGN KEY (role) REFERENCES master_role(id) 
         ON DELETE RESTRICT 
         ON UPDATE CASCADE
@@ -78,3 +83,4 @@ CREATE TABLE s_register (
             ON DELETE CASCADE 
             ON UPDATE CASCADE
     );
+

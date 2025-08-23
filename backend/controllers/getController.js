@@ -8,7 +8,9 @@ exports.user_data = (req,res,next) => {
     let sql = `SELECT  
     t1.user_id, 
     t1.name, 
-    t1.email, 
+    t1.email,
+    t1.dept,
+    t1.year,
     t1.type, 
     (SELECT name FROM master_role WHERE id = t1.role) AS role,
     c.id AS course_id, 
@@ -56,6 +58,8 @@ exports.get_all_users = (req, res, next) => {
     u.user_id,
     u.name,
     u.email,
+    u.dept,
+    u.year,
     u.type,
     r.name AS role,
     c.id AS course_id,
@@ -97,3 +101,57 @@ exports.get_all_users = (req, res, next) => {
   }
 };
 
+exports.get_relations = (req, res, next) => {
+  try {
+    let sql = `
+    SELECT 
+    faculty_user.name AS faculty,
+    faculty_user.user_id AS faculty_reg_num,
+    faculty_user.email AS faculty_email,
+    faculty_user.dept AS faculty_dept,
+    mapping.relationship,
+    mapping.relation_user AS student,
+    student_user.user_id AS student_reg_num,
+    student_user.email AS student_email,
+    dept_table.dept
+    FROM master_relationship_mapping mapping
+    JOIN master_user faculty_user ON faculty_user.id = mapping.user
+    JOIN master_user student_user ON student_user.id = mapping.relation_user
+    JOIN master_dept dept_table ON faculty_user.dept = dept_table.id
+    WHERE mapping.user <> mapping.relation_user;
+    `;
+
+    db.query(sql, (error, result) => {
+      if (error || result.length === 0) {
+        return next(error || createError.NotFound('User relations data not found!'));
+      }
+
+      // Group by faculty
+      const grouped = {};
+      result.forEach(row => {
+        if (!grouped[row.faculty_reg_num]) {
+          grouped[row.faculty_reg_num] = {
+            faculty: row.faculty,
+            faculty_reg_num: row.faculty_reg_num,
+            faculty_email: row.faculty_email,
+            faculty_dept: row.faculty_dept,
+            no_of_mentees: 0,
+            students: []
+          };
+        }
+
+        grouped[row.faculty_reg_num].students.push({
+          student: row.student,
+          student_reg_num: row.student_reg_num,
+          student_email: row.student_email
+        });
+
+        grouped[row.faculty_reg_num].no_of_mentees++;
+      });
+
+      res.json(Object.values(grouped));
+    });
+  } catch (error) {
+    next(error);
+  }
+};
