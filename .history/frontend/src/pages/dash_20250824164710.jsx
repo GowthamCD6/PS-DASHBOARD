@@ -458,8 +458,8 @@ const Dash = () => {
       margin: "0",
     },
     title: {
-      fontSize: "33px",
-      fontWeight: "700",
+      fontSize: "36px",
+      fontWeight: "600",
       color: "#475569",
       margin: "0 0 8px 0",
       letterSpacing: "-0.025em",
@@ -472,6 +472,7 @@ const Dash = () => {
       padding: "20px",
       margin: "24px 32px 0",
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      minWidth: "1600px", // Increased filter container width
     },
     filtersRow: {
       display: "flex",
@@ -495,10 +496,12 @@ const Dash = () => {
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       margin: "24px 32px",
       flex: "1",
+      minWidth: "1600px", // Increased table container width
     },
     tableWrapper: {
       overflowX: "auto",
       width: "100%",
+      minWidth: "1600px", // Increased table width
     },
     table: {
       width: "100%",
@@ -522,16 +525,16 @@ const Dash = () => {
       verticalAlign: "middle",
     },
     completedBadge: {
-      backgroundColor: "#e0e7ff",
-      color: "#4f46e5",
-      padding: "8px 16px",
-      borderRadius: "8px",
-      fontWeight: "600",
-      fontSize: "14px",
-      cursor: "pointer",
-      display: "inline-block",
-      transition: "all 0.2s ease-in-out",
-      border: "1px solid #c7d2fe",
+        backgroundColor: '#e0e7ff',
+        color: '#4f46e5',
+        padding: '8px 16px',
+        borderRadius: '8px',
+        fontWeight: '600',
+        fontSize: '14px',
+        cursor: 'pointer',
+        display: 'inline-block',
+        transition: 'all 0.2s ease-in-out',
+        border: '1px solid #c7d2fe'
     },
     nameMain: {
       fontSize: "14px",
@@ -550,9 +553,9 @@ const Dash = () => {
       gap: "4px",
     },
     skillLevelText: {
-      fontSize: "14px",
-      fontWeight: "600",
-      lineHeight: "1.2",
+        fontSize: '14px',
+        fontWeight: '600',
+        lineHeight: '1.2'
     },
     daysAgo: {
       fontSize: "12px",
@@ -575,18 +578,11 @@ const Dash = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
-      <div
-        style={{
-          ...styles.header,
-          backgroundColor: "#f6f7fb",
-          borderBottom: "none",
-          marginBottom: "-22px",
-        }}
-      >
+      
+      <div style={{ ...styles.header, backgroundColor: '#f6f7fb', borderBottom: 'none' ,marginBottom:'-22px' }}>
         <h3 style={styles.title}>Student Skills Dashboard</h3>
       </div>
-
+      
       <div style={styles.filtersContainer}>
         <div style={styles.filtersRow}>
           <div style={styles.filtersLeft}>
@@ -638,7 +634,7 @@ const Dash = () => {
                 <MenuItem value="IV">IV Year</MenuItem>
               </Select>
             </FormControl>
-
+            
             <FormControl sx={{ minWidth: 230 }}>
               <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
               <Select
@@ -675,9 +671,6 @@ const Dash = () => {
             onClick={addSkillColumn}
             sx={{
               backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "12px 20px",
-              borderRadius: "8px",
               fontSize: "14px",
               fontWeight: "600",
               textTransform: "none",
@@ -690,7 +683,7 @@ const Dash = () => {
           </Button>
         </div>
       </div>
-
+      
       <div style={styles.tableContainer}>
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
@@ -704,7 +697,7 @@ const Dash = () => {
                     fontSize: "14px",
                     color: "#475569",
                     textTransform: "uppercase",
-                    width: "120px",
+                    width: '120px'
                   }}
                 >
                   <Box
@@ -712,7 +705,7 @@ const Dash = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      textAlign: "center",
+                      textAlign: 'center'
                     }}
                   >
                     <span>
@@ -721,7 +714,7 @@ const Dash = () => {
                     </span>
                   </Box>
                 </TableCell>
-
+                
                 <TableCell
                   sx={{
                     fontWeight: "600",
@@ -755,7 +748,8 @@ const Dash = () => {
                     {getSortIcon("completedLevels")}
                   </IconButton>
                 </TableCell>
-
+                
+                {/* MODIFIED: Changed justifyContent to 'flex-start' for left alignment */}
                 <TableCell
                   sx={{
                     fontWeight: "600",
@@ -765,14 +759,13 @@ const Dash = () => {
                     color: "#475569",
                     textTransform: "uppercase",
                     position: "relative",
-                    textAlign: "center",
                   }}
                 >
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
+                      justifyContent: "flex-start", 
                     }}
                   >
                     <span>Name</span>
@@ -783,7 +776,7 @@ const Dash = () => {
                     sx={{
                       position: "absolute",
                       top: "50%",
-                      right: "25px",
+                      right: "50px",
                       transform: "translateY(-50%)",
                     }}
                   >
@@ -818,35 +811,24 @@ const Dash = () => {
                     position: "relative",
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <span>Reg No</span>
-                  </Box>
+                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                     <span>Reg No</span>
+                   </Box>
                   <IconButton
                     size="small"
                     onClick={handleRegNoOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "5px",
-                      transform: "translateY(-50%)",
-                    }}
+                     sx={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)' }}
                   >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
+                    <FilterListIcon sx={{ fontSize: '18px' }} />
                   </IconButton>
                   <Popover
                     open={Boolean(regNoAnchorEl)}
                     anchorEl={regNoAnchorEl}
                     onClose={handleRegNoClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                   >
                     <Box sx={{ p: 2 }}>
-                      <TextField
+                       <TextField
                         placeholder="Search by registration number..."
                         variant="outlined"
                         size="small"
@@ -857,191 +839,67 @@ const Dash = () => {
                     </Box>
                   </Popover>
                 </TableCell>
-
+                
                 <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
+                   sx={{ fontWeight: '600', backgroundColor: '#f8fafc', padding: '16px 32px', fontSize: '14px', color: '#475569', textTransform: 'uppercase', position: 'relative' }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <span>Cumulative</span>
                     <span>Rewards</span>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleCumulativeOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "-5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
+                  <IconButton size="small" onClick={handleCumulativeOpen} sx={{ position: 'absolute', top: '50%', right: '-5px', transform: 'translateY(-50%)' }}>
+                    <FilterListIcon sx={{ fontSize: '18px' }} />
                   </IconButton>
-                  <Popover
-                    open={Boolean(cumulativeAnchorEl)}
-                    anchorEl={cumulativeAnchorEl}
-                    onClose={handleCumulativeClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  >
-                    <Box
-                      sx={{
-                        p: 2,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 1,
-                      }}
-                    >
-                      <Select
-                        size="small"
-                        value={cumulativePopoverFilter.type}
-                        onChange={(e) =>
-                          setCumulativePopoverFilter((prev) => ({
-                            ...prev,
-                            type: e.target.value,
-                          }))
-                        }
-                      >
-                        <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="equal">Equal to</MenuItem>
-                        <MenuItem value="greater">Greater than</MenuItem>
-                        <MenuItem value="less">Less than</MenuItem>
-                      </Select>
-                      <TextField
-                        size="small"
-                        type="number"
-                        placeholder="Value"
-                        value={cumulativePopoverFilter.value}
-                        onChange={(e) =>
-                          setCumulativePopoverFilter((prev) => ({
-                            ...prev,
-                            value: e.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleCumulativeApply}
-                      >
-                        Apply
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={handleCumulativeClear}
-                      >
-                        Clear
-                      </Button>
-                    </Box>
-                  </Popover>
+                   <Popover
+                      open={Boolean(cumulativeAnchorEl)}
+                      anchorEl={cumulativeAnchorEl}
+                      onClose={handleCumulativeClose}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                   >
+                     <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                       <Select size="small" value={cumulativePopoverFilter.type} onChange={e => setCumulativePopoverFilter(prev => ({...prev, type: e.target.value}))}>
+                          <MenuItem value="all">All</MenuItem>
+                          <MenuItem value="equal">Equal to</MenuItem>
+                          <MenuItem value="greater">Greater than</MenuItem>
+                          <MenuItem value="less">Less than</MenuItem>
+                       </Select>
+                       <TextField size="small" type="number" placeholder="Value" value={cumulativePopoverFilter.value} onChange={e => setCumulativePopoverFilter(prev => ({...prev, value: e.target.value}))} />
+                       <Button size="small" variant="contained" onClick={handleCumulativeApply}>Apply</Button>
+                       <Button size="small" variant="outlined" onClick={handleCumulativeClear}>Clear</Button>
+                     </Box>
+                   </Popover>
                 </TableCell>
-
+                
                 <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
+                   sx={{ fontWeight: '600', backgroundColor: '#f8fafc', padding: '16px 32px', fontSize: '14px', color: '#475569', textTransform: 'uppercase', position: 'relative' }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <span>Current Sem</span>
                     <span>Rewards</span>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleCurrentSemOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "-5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
-                  <Popover
-                    open={Boolean(currentSemAnchorEl)}
-                    anchorEl={currentSemAnchorEl}
-                    onClose={handleCurrentSemClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  >
-                    <Box
-                      sx={{
-                        p: 2,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 1,
-                      }}
-                    >
-                      <Select
-                        size="small"
-                        value={currentSemPopoverFilter.type}
-                        onChange={(e) =>
-                          setCurrentSemPopoverFilter((prev) => ({
-                            ...prev,
-                            type: e.target.value,
-                          }))
-                        }
-                      >
-                        <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="equal">Equal to</MenuItem>
-                        <MenuItem value="greater">Greater than</MenuItem>
-                        <MenuItem value="less">Less than</MenuItem>
-                      </Select>
-                      <TextField
-                        size="small"
-                        type="number"
-                        placeholder="Value"
-                        value={currentSemPopoverFilter.value}
-                        onChange={(e) =>
-                          setCurrentSemPopoverFilter((prev) => ({
-                            ...prev,
-                            value: e.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleCurrentSemApply}
-                      >
-                        Apply
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={handleCurrentSemClear}
-                      >
-                        Clear
-                      </Button>
-                    </Box>
-                  </Popover>
+                   <IconButton size="small" onClick={handleCurrentSemOpen} sx={{ position: 'absolute', top: '50%', right: '-5px', transform: 'translateY(-50%)' }}>
+                     <FilterListIcon sx={{ fontSize: '18px' }} />
+                   </IconButton>
+                   <Popover
+                      open={Boolean(currentSemAnchorEl)}
+                      anchorEl={currentSemAnchorEl}
+                      onClose={handleCurrentSemClose}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                   >
+                     <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                       <Select size="small" value={currentSemPopoverFilter.type} onChange={e => setCurrentSemPopoverFilter(prev => ({...prev, type: e.target.value}))}>
+                          <MenuItem value="all">All</MenuItem>
+                          <MenuItem value="equal">Equal to</MenuItem>
+                          <MenuItem value="greater">Greater than</MenuItem>
+                          <MenuItem value="less">Less than</MenuItem>
+                       </Select>
+                       <TextField size="small" type="number" placeholder="Value" value={currentSemPopoverFilter.value} onChange={e => setCurrentSemPopoverFilter(prev => ({...prev, value: e.target.value}))} />
+                       <Button size="small" variant="contained" onClick={handleCurrentSemApply}>Apply</Button>
+                       <Button size="small" variant="outlined" onClick={handleCurrentSemClear}>Clear</Button>
+                     </Box>
+                   </Popover>
                 </TableCell>
-
+                
                 {skillColumns.map((skillCol) => (
                   <TableCell
                     key={skillCol.id}
@@ -1053,65 +911,17 @@ const Dash = () => {
                       minWidth: "220px",
                     }}
                   >
-                    <Box
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr auto",
-                        gridTemplateRows: "auto auto",
-                        gap: 1.5,
-                        alignItems: "center",
-                      }}
-                    >
-                      <Select
-                        value={skillCol.skill}
-                        onChange={(e) =>
-                          updateSkillColumn(
-                            skillCol.id,
-                            "skill",
-                            e.target.value
-                          )
-                        }
-                        displayEmpty
-                        size="small"
-                      >
-                        <MenuItem value="" disabled>
-                          <em>Select Skill</em>
-                        </MenuItem>
-                        {availableSkills.map((skill) => (
-                          <MenuItem key={skill} value={skill}>
-                            {skill}
-                          </MenuItem>
-                        ))}
+                    <Box sx={{ display: "grid", gridTemplateColumns: "1fr auto", gridTemplateRows: "auto auto", gap: 1.5, alignItems: "center" }}>
+                      <Select value={skillCol.skill} onChange={(e) => updateSkillColumn(skillCol.id, "skill", e.target.value)} displayEmpty size="small">
+                        <MenuItem value="" disabled><em>Select Skill</em></MenuItem>
+                        {availableSkills.map((skill) => (<MenuItem key={skill} value={skill}>{skill}</MenuItem>))}
                       </Select>
-                      <IconButton
-                        onClick={() => removeSkillColumn(skillCol.id)}
-                        size="small"
-                      >
+                      <IconButton onClick={() => removeSkillColumn(skillCol.id)} size="small">
                         <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
-                      <TextField
-                        type="number"
-                        placeholder="Level"
-                        value={skillCol.levelFilter}
-                        onChange={(e) =>
-                          updateSkillColumn(
-                            skillCol.id,
-                            "levelFilter",
-                            e.target.value
-                          )
-                        }
-                        size="small"
-                      />
-                      <IconButton
-                        onClick={() => handleSort(`skill_${skillCol.id}`)}
-                        size="small"
-                      >
-                        {sortConfig.key === `skill_${skillCol.id}` &&
-                        sortConfig.direction === "desc" ? (
-                          <ArrowDownwardIcon fontSize="small" />
-                        ) : (
-                          <ArrowUpwardIcon fontSize="small" />
-                        )}
+                      <TextField type="number" placeholder="Level" value={skillCol.levelFilter} onChange={(e) => updateSkillColumn( skillCol.id, "levelFilter", e.target.value )} size="small" />
+                      <IconButton onClick={() => handleSort(`skill_${skillCol.id}`)} size="small">
+                        {sortConfig.key === `skill_${skillCol.id}` && sortConfig.direction === 'desc' ? <ArrowDownwardIcon fontSize="small" /> : <ArrowUpwardIcon fontSize="small" />}
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -1125,53 +935,38 @@ const Dash = () => {
                   key={student.id}
                   style={styles.tr}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f8fafc";
-                    const completedBadge = e.currentTarget.querySelector(
-                      ".completed-badge-hover"
-                    );
-                    if (completedBadge) {
-                      completedBadge.style.backgroundColor = "#4f46e5";
-                      completedBadge.style.color = "#ffffff";
-                    }
+                      e.currentTarget.style.backgroundColor = "#f8fafc";
+                      const completedBadge = e.currentTarget.querySelector('.completed-badge-hover');
+                      if (completedBadge) {
+                          completedBadge.style.backgroundColor = '#4f46e5';
+                          completedBadge.style.color = '#ffffff';
+                      }
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "white";
-                    const completedBadge = e.currentTarget.querySelector(
-                      ".completed-badge-hover"
-                    );
-                    if (completedBadge) {
-                      completedBadge.style.backgroundColor = "#e0e7ff";
-                      completedBadge.style.color = "#4f46e5";
-                    }
+                      e.currentTarget.style.backgroundColor = "white";
+                      const completedBadge = e.currentTarget.querySelector('.completed-badge-hover');
+                      if (completedBadge) {
+                          completedBadge.style.backgroundColor = '#e0e7ff';
+                          completedBadge.style.color = '#4f46e5';
+                      }
                   }}
                 >
-                  <td style={{ ...styles.td, padding: "16px 24px" }}>
-                    {student.totalLevels}
-                  </td>
+                  <td style={{...styles.td, padding: '16px 24px'}}>{student.totalLevels}</td>
                   <td style={styles.td}>
-                    <span
-                      style={styles.completedBadge}
-                      className="completed-badge-hover"
-                    >
+                    <span style={styles.completedBadge} className="completed-badge-hover">
                       {student.completedLevels}
                     </span>
                   </td>
-
-                  <td style={{ ...styles.td, whiteSpace: "nowrap" }}>
+                  
+                  <td style={{ ...styles.td, whiteSpace: 'nowrap' }}>
                     <div style={styles.nameMain}>{student.name}</div>
                   </td>
-
+                  
                   <td style={styles.td}>{student.regNo}</td>
                   <td style={{ ...styles.td, ...styles.rewardPoints }}>
                     {student.cumulativeRewards}
                   </td>
-                  <td
-                    style={{
-                      ...styles.td,
-                      ...styles.rewardPoints,
-                      minWidth: "200px",
-                    }}
-                  >
+                  <td style={{ ...styles.td, ...styles.rewardPoints, minWidth: '200px' }}>
                     {student.currentSemRewards}
                   </td>
 
@@ -1194,6 +989,7 @@ const Dash = () => {
                           <span
                             style={{
                               ...styles.skillLevelText,
+                              color: getLevelBadgeColor(skillData.level),
                             }}
                           >
                             {`Level ${skillData.level}`}

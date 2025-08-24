@@ -1194,6 +1194,7 @@ const Dash = () => {
                           <span
                             style={{
                               ...styles.skillLevelText,
+                              color: getLevelBadgeColor(skillData.level),
                             }}
                           >
                             {`Level ${skillData.level}`}

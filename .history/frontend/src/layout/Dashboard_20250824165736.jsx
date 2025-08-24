@@ -313,17 +313,15 @@ function DashboardLayoutAccountSidebar(props) {
         session={session}
       >
         <DashboardLayout
-        sidebarExpandedWidth={240}
-        // sx={
-        //   {
-
-        //   }
-        // }
+          sx={{
+            '--Sidebar-width': 'var(--Sidebar-width, 200px)',
+            backgroundColor: '#f6f7fb', // Set dashboard background color
+          }}
           slots={{
+            sidebarExpandedWidth: 200,
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,
           }}
-          
         >
           <DemoPageContent>
             {children}

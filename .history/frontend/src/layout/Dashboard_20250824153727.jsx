@@ -25,7 +25,8 @@ import {
 
 import { DemoProvider } from '@toolpad/core/internal';
 import logo from '../assets/logo.png';
-
+// import StudentSkillsTable from '../pages/dash';
+// import StudentDashboard from '../pages/student_dashboard';
 
 const NAVIGATION = [
   {
@@ -77,12 +78,11 @@ const demoTheme = createTheme({
 });
 
 function CustomToolbarActions() {
-  // return (
-  //   <Stack direction="row" alignItems="center">
-  //     <ThemeSwitcher />
-  //   </Stack>
-  // );
-  return null;
+  return (
+    <Stack direction="row" alignItems="center">
+      <ThemeSwitcher />
+    </Stack>
+  );
 }
 
 function DemoPageContent({ children }) {
@@ -127,9 +127,8 @@ AccountSidebarPreview.propTypes = {
   handleClick: PropTypes.func,
   mini: PropTypes.bool.isRequired,
   /**
-   * The state of the Account popover
+   * The state of the A
    * @default false
-   */
   open: PropTypes.bool,
 };
 
@@ -313,17 +312,13 @@ function DashboardLayoutAccountSidebar(props) {
         session={session}
       >
         <DashboardLayout
-        sidebarExpandedWidth={240}
-        // sx={
-        //   {
-
-        //   }
-        // }
+          sx={{
+            '--Sidebar-width': '200px',
+          }}
           slots={{
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,
           }}
-          
         >
           <DemoPageContent>
             {children}

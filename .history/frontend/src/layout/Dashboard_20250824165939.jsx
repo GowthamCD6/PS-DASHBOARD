@@ -314,11 +314,7 @@ function DashboardLayoutAccountSidebar(props) {
       >
         <DashboardLayout
         sidebarExpandedWidth={240}
-        // sx={
-        //   {
-
-        //   }
-        // }
+        sx={}
           slots={{
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,

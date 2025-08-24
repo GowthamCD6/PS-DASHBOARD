@@ -77,12 +77,11 @@ const demoTheme = createTheme({
 });
 
 function CustomToolbarActions() {
-  // return (
-  //   <Stack direction="row" alignItems="center">
-  //     <ThemeSwitcher />
-  //   </Stack>
-  // );
-  return null;
+  return (
+    <Stack direction="row" alignItems="center">
+      <ThemeSwitcher />
+    </Stack>
+  );
 }
 
 function DemoPageContent({ children }) {
@@ -314,11 +313,7 @@ function DashboardLayoutAccountSidebar(props) {
       >
         <DashboardLayout
         sidebarExpandedWidth={240}
-        // sx={
-        //   {
-
-        //   }
-        // }
+        
           slots={{
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,

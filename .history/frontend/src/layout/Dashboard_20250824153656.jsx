@@ -25,7 +25,8 @@ import {
 
 import { DemoProvider } from '@toolpad/core/internal';
 import logo from '../assets/logo.png';
-
+// import StudentSkillsTable from '../pages/dash';
+// import StudentDashboard from '../pages/student_dashboard';
 
 const NAVIGATION = [
   {
@@ -77,12 +78,11 @@ const demoTheme = createTheme({
 });
 
 function CustomToolbarActions() {
-  // return (
-  //   <Stack direction="row" alignItems="center">
-  //     <ThemeSwitcher />
-  //   </Stack>
-  // );
-  return null;
+  return (
+    <Stack direction="row" alignItems="center">
+      <ThemeSwitcher />
+    </Stack>
+  );
 }
 
 function DemoPageContent({ children }) {
@@ -150,7 +150,7 @@ const accounts = [
     id: 2,
     name: 'Bharat MUI',
     email: 'bharat@mui.com',
-    color: '#8B4513', 
+    color: '#8B4513', // Brown color
     projects: [{ id: 4, title: 'Project A' }],
   },
 ];
@@ -312,18 +312,15 @@ function DashboardLayoutAccountSidebar(props) {
         authentication={authentication}
         session={session}
       >
+        {/* preview-start */}
         <DashboardLayout
-        sidebarExpandedWidth={240}
-        // sx={
-        //   {
-
-        //   }
-        // }
+          sx={{
+            '--Sidebar-width': '200px',
+          }}
           slots={{
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,
           }}
-          
         >
           <DemoPageContent>
             {children}

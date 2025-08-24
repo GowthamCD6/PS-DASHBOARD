@@ -77,12 +77,11 @@ const demoTheme = createTheme({
 });
 
 function CustomToolbarActions() {
-  // return (
-  //   <Stack direction="row" alignItems="center">
-  //     <ThemeSwitcher />
-  //   </Stack>
-  // );
-  return null;
+  return (
+    <Stack direction="row" alignItems="center">
+      <ThemeSwitcher />
+    </Stack>
+  );
 }
 
 function DemoPageContent({ children }) {
@@ -313,17 +312,13 @@ function DashboardLayoutAccountSidebar(props) {
         session={session}
       >
         <DashboardLayout
-        sidebarExpandedWidth={240}
-        // sx={
-        //   {
-
-        //   }
-        // }
+          sx={{
+            '--Sidebar-width': '150px',
+          }}
           slots={{
             toolbarActions: CustomToolbarActions,
             sidebarFooter: SidebarFooterAccount,
           }}
-          
         >
           <DemoPageContent>
             {children}
