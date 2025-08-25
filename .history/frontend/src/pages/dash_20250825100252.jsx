@@ -1209,7 +1209,7 @@ const Dash = () => {
                               borderRadius: "12px",
                               fontSize: "11px",
                               fontWeight: "500",
-                              minWidth: "75px",
+                              minWidth: "50px",
                               textAlign: "center",
                               display: "inline-block",
                             }}

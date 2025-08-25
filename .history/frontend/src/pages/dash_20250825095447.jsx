@@ -545,10 +545,10 @@ const Dash = () => {
     skillCell: {
       display: "flex",
       flexDirection: "row",
-      justifyContent: "flex-start",
+      justifyContent: "space-between",
       alignItems: "center",
       width: "100%",
-      gap: "12px",
+      gap: "8px",
     },
     skillLevelText: {
       fontSize: "14px",
@@ -1209,9 +1209,6 @@ const Dash = () => {
                               borderRadius: "12px",
                               fontSize: "11px",
                               fontWeight: "500",
-                              minWidth: "75px",
-                              textAlign: "center",
-                              display: "inline-block",
                             }}
                           >
                             {skillData.daysAgo === 999

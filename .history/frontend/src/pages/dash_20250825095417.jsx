@@ -545,10 +545,10 @@ const Dash = () => {
     skillCell: {
       display: "flex",
       flexDirection: "row",
-      justifyContent: "flex-start",
+      justifyContent: "space-between",
       alignItems: "center",
       width: "100%",
-      gap: "12px",
+      gap: "8px",
     },
     skillLevelText: {
       fontSize: "14px",
@@ -1203,15 +1203,7 @@ const Dash = () => {
                           <span
                             style={{
                               ...styles.daysAgo,
-                              backgroundColor: getDaysColor(skillData.daysAgo).bg,
-                              color: getDaysColor(skillData.daysAgo).text,
-                              padding: "4px 8px",
-                              borderRadius: "12px",
-                              fontSize: "11px",
-                              fontWeight: "500",
-                              minWidth: "75px",
-                              textAlign: "center",
-                              display: "inline-block",
+                              color: getDaysColor(skillData.daysAgo),
                             }}
                           >
                             {skillData.daysAgo === 999

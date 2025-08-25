@@ -1212,6 +1212,7 @@ const Dash = () => {
                               minWidth: "75px",
                               textAlign: "center",
                               display: "inline-block",
+                              col
                             }}
                           >
                             {skillData.daysAgo === 999

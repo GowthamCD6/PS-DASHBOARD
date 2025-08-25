@@ -249,11 +249,12 @@ const Dash = () => {
     return "#dc2626"; // red-600
   };
 
-  // Get days ago color with mild colors
+  // Get days ago color
   const getDaysColor = (days) => {
-    if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" }; // mild green
-    if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" }; // mild orange
-    return { bg: "#fecaca", text: "#dc2626" }; // mild red
+    if (days <= 3) return "#10b981"; // green-500
+    if (days <= 7) return "#84cc16"; // lime-500
+    if (days <= 15) return "#f59e0b"; // amber-500
+    return "#ef4444"; // red-500
   };
 
   // Filter students
@@ -544,11 +545,9 @@ const Dash = () => {
     },
     skillCell: {
       display: "flex",
-      flexDirection: "row",
-      justifyContent: "flex-start",
+      flexDirection: "column",
       alignItems: "center",
-      width: "100%",
-      gap: "12px",
+      gap: "4px",
     },
     skillLevelText: {
       fontSize: "14px",
@@ -1132,8 +1131,8 @@ const Dash = () => {
                       ".completed-badge-hover"
                     );
                     if (completedBadge) {
-                      completedBadge.style.backgroundColor = "#e3eefa";
-                      completedBadge.style.color = "#141313ff";
+                      completedBadge.style.backgroundColor = "#6";
+                      completedBadge.style.color = "#ffffff";
                     }
                   }}
                   onMouseOut={(e) => {
@@ -1142,7 +1141,7 @@ const Dash = () => {
                       ".completed-badge-hover"
                     );
                     if (completedBadge) {
-                      completedBadge.style.backgroundColor = "#f6f7fb";
+                      completedBadge.style.backgroundColor = "#e0e7ff";
                       completedBadge.style.color = "#4f46e5";
                     }
                   }}
@@ -1159,11 +1158,11 @@ const Dash = () => {
                     </span>
                   </td>
 
-                  <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
+                  <td style={{ ...styles.td, whiteSpace: "nowrap" }}>
                     <div style={styles.nameMain}>{student.name}</div>
                   </td>
 
-                  <td style={{ ...styles.td, textAlign: "left" }}>{student.regNo}</td>
+                  <td style={styles.td}>{student.regNo}</td>
                   <td style={{ ...styles.td, ...styles.rewardPoints }}>
                     {student.cumulativeRewards}
                   </td>
@@ -1203,15 +1202,7 @@ const Dash = () => {
                           <span
                             style={{
                               ...styles.daysAgo,
-                              backgroundColor: getDaysColor(skillData.daysAgo).bg,
-                              color: getDaysColor(skillData.daysAgo).text,
-                              padding: "4px 8px",
-                              borderRadius: "12px",
-                              fontSize: "11px",
-                              fontWeight: "500",
-                              minWidth: "75px",
-                              textAlign: "center",
-                              display: "inline-block",
+                              color: getDaysColor(skillData.daysAgo),
                             }}
                           >
                             {skillData.daysAgo === 999

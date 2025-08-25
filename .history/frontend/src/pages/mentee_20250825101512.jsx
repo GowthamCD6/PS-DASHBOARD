@@ -30,15 +30,12 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 
-// API services commented out for now
-// import { studentService } from '../services';
-// import { useApiCall } from '../hooks/useApiCall';
-
-const initialStudents = [
+// Initial mentee data (students under this mentor)
+const initialMentees = [
   {
     id: 1,
-    name: "Jon Snow",
-    regNo: "2021CSE001",
+    name: "Rahul Sharma",
+    regNo: "7376242CSE163",
     department: "CSE",
     year: "III",
     totalLevels: 10,
@@ -53,12 +50,12 @@ const initialStudents = [
   },
   {
     id: 2,
-    name: "Cersei Lannister",
-    regNo: "2021IT002",
-    department: "IT",
+    name: "Priya Gupta",
+    regNo: "7376243CSE164",
+    department: "CSE", 
     year: "III",
-    totalLevels: 10,
-    completedLevels: 9,
+    totalLevels: 8,
+    completedLevels: 6,
     cumulativeRewards: 1200,
     currentSemRewards: 180,
     skills: {
@@ -69,12 +66,12 @@ const initialStudents = [
   },
   {
     id: 3,
-    name: "Jaime Lannister",
-    regNo: "2022ECE003",
-    department: "ECE",
-    year: "II",
-    totalLevels: 10,
-    completedLevels: 4,
+    name: "Amit Singh",
+    regNo: "7376244CSE165",
+    department: "CSE",
+    year: "III",
+    totalLevels: 12,
+    completedLevels: 9,
     cumulativeRewards: 420,
     currentSemRewards: 65,
     skills: {
@@ -85,34 +82,18 @@ const initialStudents = [
   },
   {
     id: 4,
-    name: "Arya Stark",
-    regNo: "2020EEE004",
-    department: "EEE",
-    year: "IV",
-    totalLevels: 10,
-    completedLevels: 10,
+    name: "Sneha Patel",
+    regNo: "7376245CSE166",
+    department: "CSE",
+    year: "III",
+    totalLevels: 15,
+    completedLevels: 12,
     cumulativeRewards: 1500,
     currentSemRewards: 220,
     skills: {
       JavaScript: { level: 10, daysAgo: 999 },
       Python: { level: 9, daysAgo: 1 },
       React: { level: 8, daysAgo: 2 },
-    },
-  },
-  {
-    id: 5,
-    name: "Daenerys Targaryen",
-    regNo: "2021MECH005",
-    department: "MECH",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 6,
-    cumulativeRewards: 680,
-    currentSemRewards: 95,
-    skills: {
-      JavaScript: { level: 5, daysAgo: 18 },
-      Python: { level: 8, daysAgo: 6 },
-      React: { level: 4, daysAgo: 20 },
     },
   },
 ];
@@ -128,9 +109,10 @@ const availableSkills = [
   "Vue.js",
 ];
 
-const Dash = () => {
-  // Simplified state management - no API for now
-  const [students, setStudents] = useState(initialStudents);
+
+const MenteeDashboard = () => {
+  // State management
+  const [mentees, setMentees] = useState(initialMentees);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -256,29 +238,29 @@ const Dash = () => {
     return { bg: "#fecaca", text: "#dc2626" }; // mild red
   };
 
-  // Filter students
-  const filteredStudents = useMemo(() => {
-    if (!students || !Array.isArray(students)) return [];
+  // Filter mentees
+  const filteredMentees = useMemo(() => {
+    if (!mentees || !Array.isArray(mentees)) return [];
 
-    return students.filter((student) => {
-      if (!student || !student.skills) return false;
+    return mentees.filter((mentee) => {
+      if (!mentee || !mentee.skills) return false;
 
       if (filters.role !== "all" && filters.role !== "all") return false;
-      if (filters.year !== "all" && student.year !== filters.year) return false;
+      if (filters.year !== "all" && mentee.year !== filters.year) return false;
       if (
         filters.department !== "all" &&
-        student.department !== filters.department
+        mentee.department !== filters.department
       )
         return false;
 
       if (
         nameSearch &&
-        !student.name.toLowerCase().includes(nameSearch.toLowerCase())
+        !mentee.name.toLowerCase().includes(nameSearch.toLowerCase())
       )
         return false;
       if (
         regNoSearch &&
-        !student.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
+        !mentee.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
       )
         return false;
 
@@ -286,17 +268,17 @@ const Dash = () => {
         const value = parseInt(cumulativeFilter.value);
         if (
           cumulativeFilter.type === "equal" &&
-          student.cumulativeRewards !== value
+          mentee.cumulativeRewards !== value
         )
           return false;
         if (
           cumulativeFilter.type === "greater" &&
-          student.cumulativeRewards <= value
+          mentee.cumulativeRewards <= value
         )
           return false;
         if (
           cumulativeFilter.type === "less" &&
-          student.cumulativeRewards >= value
+          mentee.cumulativeRewards >= value
         )
           return false;
       }
@@ -305,33 +287,33 @@ const Dash = () => {
         const value = parseInt(currentSemFilter.value);
         if (
           currentSemFilter.type === "equal" &&
-          student.currentSemRewards !== value
+          mentee.currentSemRewards !== value
         )
           return false;
         if (
           currentSemFilter.type === "greater" &&
-          student.currentSemRewards <= value
+          mentee.currentSemRewards <= value
         )
           return false;
         if (
           currentSemFilter.type === "less" &&
-          student.currentSemRewards >= value
+          mentee.currentSemRewards >= value
         )
           return false;
       }
 
       for (const skillCol of skillColumns) {
         if (skillCol.levelFilter) {
-          const skillData = student.skills && student.skills[skillCol.skill];
-          const studentLevel = skillData ? skillData.level : 0;
-          if (studentLevel !== parseInt(skillCol.levelFilter)) return false;
+          const skillData = mentee.skills && mentee.skills[skillCol.skill];
+          const menteeLevel = skillData ? skillData.level : 0;
+          if (menteeLevel !== parseInt(skillCol.levelFilter)) return false;
         }
       }
 
       return true;
     });
   }, [
-    students,
+    mentees,
     filters,
     nameSearch,
     regNoSearch,
@@ -340,12 +322,12 @@ const Dash = () => {
     skillColumns,
   ]);
 
-  // Sort students
-  const sortedStudents = useMemo(() => {
-    if (!filteredStudents || !Array.isArray(filteredStudents)) return [];
-    if (!sortConfig.key || !sortConfig.direction) return filteredStudents;
+  // Sort mentees
+  const sortedMentees = useMemo(() => {
+    if (!filteredMentees || !Array.isArray(filteredMentees)) return [];
+    if (!sortConfig.key || !sortConfig.direction) return filteredMentees;
 
-    return [...filteredStudents].sort((a, b) => {
+    return [...filteredMentees].sort((a, b) => {
       let aVal, bVal;
 
       if (sortConfig.key === "completedLevels") {
@@ -376,7 +358,7 @@ const Dash = () => {
       if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [filteredStudents, sortConfig, skillColumns]);
+  }, [filteredMentees, sortConfig, skillColumns]);
 
   const handleSort = (key) => {
     setSortConfig((prev) => {
@@ -559,7 +541,6 @@ const Dash = () => {
       fontSize: "12px",
     },
   };
-
   return (
     <div style={styles.container}>
       <Snackbar
@@ -585,7 +566,7 @@ const Dash = () => {
           marginBottom: "-22px",
         }}
       >
-        <h3 style={styles.title}>Student Skills Dashboard</h3>
+        <h3 style={styles.title}>Mentees Dashboard</h3>
       </div>
 
       <div style={styles.filtersContainer}>
@@ -602,20 +583,13 @@ const Dash = () => {
                   setFilters((prev) => ({ ...prev, role: e.target.value }))
                 }
                 size="small"
-                sx={{
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                }}
               >
                 <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="hod">HOD</MenuItem>
+                <MenuItem value="mentee">Mentees</MenuItem>
               </Select>
             </FormControl>
 
-            <FormControl sx={{ minWidth: 140 }}>
+            <FormControl sx={{ minWidth: 200 }}>
               <InputLabel id="year-select-label">YEAR</InputLabel>
               <Select
                 labelId="year-select-label"
@@ -626,11 +600,6 @@ const Dash = () => {
                   setFilters((prev) => ({ ...prev, year: e.target.value }))
                 }
                 size="small"
-                sx={{
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                }}
               >
                 <MenuItem value="all">All Years</MenuItem>
                 <MenuItem value="I">I Year</MenuItem>
@@ -640,7 +609,7 @@ const Dash = () => {
               </Select>
             </FormControl>
 
-            <FormControl sx={{ minWidth: 230 }}>
+            <FormControl sx={{ minWidth: 200 }}>
               <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
               <Select
                 labelId="department-select-label"
@@ -648,17 +617,9 @@ const Dash = () => {
                 value={filters.department}
                 label="DEPARTMENT"
                 onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    department: e.target.value,
-                  }))
+                  setFilters((prev) => ({ ...prev, department: e.target.value }))
                 }
                 size="small"
-                sx={{
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                }}
               >
                 <MenuItem value="all">All Departments</MenuItem>
                 <MenuItem value="CSE">CSE</MenuItem>
@@ -671,23 +632,22 @@ const Dash = () => {
           </div>
 
           <Button
-            variant="contained"
-            startIcon={<AddIcon />}
             onClick={addSkillColumn}
+            startIcon={<Plus size={14} />}
             sx={{
               backgroundColor: "#3b82f6",
               color: "white",
-              padding: "12px 20px",
+              padding: "8px 16px",
               borderRadius: "8px",
+              fontWeight: "500",
               fontSize: "14px",
-              fontWeight: "600",
               textTransform: "none",
               "&:hover": {
                 backgroundColor: "#2563eb",
               },
             }}
           >
-            Add Skill Column
+            Add Skill
           </Button>
         </div>
       </div>
@@ -699,212 +659,215 @@ const Dash = () => {
               <tr>
                 <TableCell
                   sx={{
-                    fontWeight: "600",
+                    fontWeight: "bold",
                     backgroundColor: "#f8fafc",
-                    padding: "16px 24px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    width: "120px",
+                    cursor: "pointer",
+                    padding: "16px 20px",
+                    fontSize: "12px",
+                    minWidth: "100px",
                   }}
+                  onClick={() => handleSort("totalLevels")}
                 >
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
+                      gap: 1,
                     }}
                   >
-                    <span>
-                      Total
-                      <br /> Levels
-                    </span>
+                    Total Levels
+                    {getSortIcon("totalLevels")}
                   </Box>
                 </TableCell>
 
                 <TableCell
                   sx={{
-                    fontWeight: "600",
+                    fontWeight: "bold",
                     backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
+                    cursor: "pointer",
+                    padding: "16px 20px",
+                    fontSize: "12px",
+                    minWidth: "120px",
                   }}
+                  onClick={() => handleSort("completedLevels")}
                 >
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
+                      gap: 1,
                     }}
                   >
-                    <span>Completed</span>
-                  </Box>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleSort("completedLevels")}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
+                    Completed Levels
                     {getSortIcon("completedLevels")}
-                  </IconButton>
+                  </Box>
                 </TableCell>
 
                 <TableCell
                   sx={{
-                    fontWeight: "600",
+                    fontWeight: "bold",
                     backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    padding: "12px 16px",
+                    fontSize: "12px",
+                    minWidth: "180px",
                     position: "relative",
-                    textAlign: "center",
                   }}
+                  onClick={() => handleSort("name")}
                 >
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
+                      gap: 1,
                     }}
                   >
-                    <span>Name</span>
+                    Name
+                    {getSortIcon("name")}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNameOpen(e);
+                      }}
+                    >
+                      <FilterListIcon fontSize="small" />
+                    </IconButton>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleNameOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "25px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
                   <Popover
                     open={Boolean(nameAnchorEl)}
                     anchorEl={nameAnchorEl}
                     onClose={handleNameClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                  >
-                    <Box sx={{ p: 2 }}>
-                      <TextField
-                        placeholder="Search by name..."
-                        variant="outlined"
-                        size="small"
-                        value={nameSearch}
-                        onChange={(e) => setNameSearch(e.target.value)}
-                        autoFocus
-                      />
-                    </Box>
-                  </Popover>
-                </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
                     }}
-                  >
-                    <span>Reg No</span>
-                  </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleRegNoOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
-                  <Popover
-                    open={Boolean(regNoAnchorEl)}
-                    anchorEl={regNoAnchorEl}
-                    onClose={handleRegNoClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                  >
-                    <Box sx={{ p: 2 }}>
-                      <TextField
-                        placeholder="Search by registration number..."
-                        variant="outlined"
-                        size="small"
-                        value={regNoSearch}
-                        onChange={(e) => setRegNoSearch(e.target.value)}
-                        autoFocus
-                      />
-                    </Box>
-                  </Popover>
-                </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>Cumulative</span>
-                    <span>Rewards</span>
-                  </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleCumulativeOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "-5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
-                  <Popover
-                    open={Boolean(cumulativeAnchorEl)}
-                    anchorEl={cumulativeAnchorEl}
-                    onClose={handleCumulativeClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                   >
                     <Box
                       sx={{
                         p: 2,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        display: "flex",
+                        flexDirection: "column",
                         gap: 1,
+                        minWidth: 200,
+                      }}
+                    >
+                      <TextField
+                        size="small"
+                        placeholder="Search by name..."
+                        value={nameSearch}
+                        onChange={(e) => setNameSearch(e.target.value)}
+                      />
+                    </Box>
+                  </Popover>
+                </TableCell>
+
+                <TableCell
+                  sx={{
+                    fontWeight: "bold",
+                    backgroundColor: "#f8fafc",
+                    cursor: "pointer",
+                    padding: "12px 16px",
+                    fontSize: "12px",
+                    minWidth: "140px",
+                    position: "relative",
+                  }}
+                  onClick={() => handleSort("regNo")}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    Registration No
+                    {getSortIcon("regNo")}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRegNoOpen(e);
+                      }}
+                    >
+                      <FilterListIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  <Popover
+                    open={Boolean(regNoAnchorEl)}
+                    anchorEl={regNoAnchorEl}
+                    onClose={handleRegNoClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        p: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                        minWidth: 200,
+                      }}
+                    >
+                      <TextField
+                        size="small"
+                        placeholder="Search by reg no..."
+                        value={regNoSearch}
+                        onChange={(e) => setRegNoSearch(e.target.value)}
+                      />
+                    </Box>
+                  </Popover>
+                </TableCell>
+
+                <TableCell
+                  sx={{
+                    fontWeight: "bold",
+                    backgroundColor: "#f8fafc",
+                    cursor: "pointer",
+                    padding: "12px 16px",
+                    fontSize: "12px",
+                    minWidth: "150px",
+                    position: "relative",
+                  }}
+                  onClick={() => handleSort("cumulativeRewards")}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    Cumulative Rewards
+                    {getSortIcon("cumulativeRewards")}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCumulativeOpen(e);
+                      }}
+                    >
+                      <FilterListIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  <Popover
+                    open={Boolean(cumulativeAnchorEl)}
+                    anchorEl={cumulativeAnchorEl}
+                    onClose={handleCumulativeClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        p: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                        minWidth: 200,
                       }}
                     >
                       <Select
@@ -954,49 +917,51 @@ const Dash = () => {
 
                 <TableCell
                   sx={{
-                    fontWeight: "600",
+                    fontWeight: "bold",
                     backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    padding: "12px 16px",
+                    fontSize: "12px",
+                    minWidth: "200px",
                     position: "relative",
                   }}
+                  onClick={() => handleSort("currentSemRewards")}
                 >
                   <Box
                     sx={{
                       display: "flex",
-                      flexDirection: "column",
                       alignItems: "center",
+                      gap: 1,
                     }}
                   >
-                    <span>Current Sem</span>
-                    <span>Rewards</span>
+                    Current Sem Rewards
+                    {getSortIcon("currentSemRewards")}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCurrentSemOpen(e);
+                      }}
+                    >
+                      <FilterListIcon fontSize="small" />
+                    </IconButton>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleCurrentSemOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "-5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
                   <Popover
                     open={Boolean(currentSemAnchorEl)}
                     anchorEl={currentSemAnchorEl}
                     onClose={handleCurrentSemClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
+                    }}
                   >
                     <Box
                       sx={{
                         p: 2,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        display: "flex",
+                        flexDirection: "column",
                         gap: 1,
+                        minWidth: 200,
                       }}
                     >
                       <Select
@@ -1122,9 +1087,9 @@ const Dash = () => {
             </thead>
 
             <tbody style={styles.tbody}>
-              {sortedStudents.map((student) => (
+              {sortedMentees.map((mentee) => (
                 <tr
-                  key={student.id}
+                  key={mentee.id}
                   style={styles.tr}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#f8fafc";
@@ -1148,24 +1113,24 @@ const Dash = () => {
                   }}
                 >
                   <td style={{ ...styles.td, padding: "16px 24px" }}>
-                    {student.totalLevels}
+                    {mentee.totalLevels}
                   </td>
                   <td style={styles.td}>
                     <span
                       style={styles.completedBadge}
                       className="completed-badge-hover"
                     >
-                      {student.completedLevels}
+                      {mentee.completedLevels}
                     </span>
                   </td>
 
                   <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
-                    <div style={styles.nameMain}>{student.name}</div>
+                    <div style={styles.nameMain}>{mentee.name}</div>
                   </td>
 
-                  <td style={{ ...styles.td, textAlign: "left" }}>{student.regNo}</td>
+                  <td style={{ ...styles.td, textAlign: "left" }}>{mentee.regNo}</td>
                   <td style={{ ...styles.td, ...styles.rewardPoints }}>
-                    {student.cumulativeRewards}
+                    {mentee.cumulativeRewards}
                   </td>
                   <td
                     style={{
@@ -1174,12 +1139,12 @@ const Dash = () => {
                       minWidth: "200px",
                     }}
                   >
-                    {student.currentSemRewards}
+                    {mentee.currentSemRewards}
                   </td>
 
                   {skillColumns.map((skillCol) => {
                     const skillData =
-                      student.skills && student.skills[skillCol.skill];
+                      mentee.skills && mentee.skills[skillCol.skill];
                     if (!skillData)
                       return (
                         <td
@@ -1232,4 +1197,4 @@ const Dash = () => {
   );
 };
 
-export default Dash;
+export default MenteeDashboard;
