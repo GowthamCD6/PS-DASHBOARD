@@ -4,5 +4,6 @@ const getController = require("../controllers/getController")
 
 router.get('/student/get_all_users',getController.get_all_users);
 router.get("/student/user_data/:id",getController.user_data); // need year and dept
+router.get("/student_faculty/get_relations",getController.get_relations);
 
 module.exports = router;
