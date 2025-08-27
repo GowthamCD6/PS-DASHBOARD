@@ -84,3 +84,9 @@ CREATE TABLE s_register (
             ON UPDATE CASCADE
     );
 
+CREATE TABLE master_relationships (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    relationship VARCHAR(50) NOT NULL UNIQUE
+);
+
+

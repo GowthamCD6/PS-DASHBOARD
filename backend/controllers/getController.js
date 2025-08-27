@@ -106,6 +106,7 @@ exports.get_relations = (req, res, next) => {
     let sql = `
     SELECT 
     faculty_user.name AS faculty,
+    faculty_user.id AS faculty_id,
     faculty_user.user_id AS faculty_reg_num,
     faculty_user.email AS faculty_email,
     faculty_user.dept AS faculty_dept,
