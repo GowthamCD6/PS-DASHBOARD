@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
@@ -44,8 +45,7 @@ import {
   Tabs,
   Tab,
   ToggleButton,
-  ToggleButtonGroup,
-  CardActions
+  ToggleButtonGroup
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -61,6 +61,9 @@ import {
   Phone as PhoneIcon,
   Info as InfoIcon,
   AdminPanelSettings as AdminIcon,
+  ExpandMore as ExpandMoreIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
   Group as GroupIcon,
   ViewList as ViewListIcon,
   AccountTree as AccountTreeIcon
@@ -82,7 +85,8 @@ const MentorManagementSystem = () => {
       email: 'rahul.sharma@example.edu',
       phone: '9876543210',
       mentors: [
-        { id: 1, name: 'Dr. Priya Patel', role: 'Academic Mentor', type: 'Faculty' }
+        { id: 1, name: 'Dr. Priya Patel', role: 'Academic Mentor', type: 'Faculty' },
+        { id: 3, name: 'Mr. Amit Kumar', role: 'Industry Mentor', type: 'Industry' }
       ]
     },
     {
@@ -106,7 +110,8 @@ const MentorManagementSystem = () => {
       email: 'amit.singh@example.edu',
       phone: '7654321098',
       mentors: [
-        { id: 2, name: 'Dr. Sanjay Verma', role: 'Project Guide', type: 'Faculty' }
+        { id: 2, name: 'Dr. Sanjay Verma', role: 'Project Guide', type: 'Faculty' },
+        { id: 4, name: 'Ms. Neha Joshi', role: 'Career Counselor', type: 'Staff' }
       ]
     }
   ]);
@@ -140,9 +145,9 @@ const MentorManagementSystem = () => {
     {
       id: 3,
       name: 'Mr. Amit Kumar',
-      department: 'Computer Science',
-      type: 'Intern',
-      role: 'Intern Developer',
+      department: 'Industry',
+      type: 'Industry',
+      role: 'Senior Developer',
       expertise: ['Web Development', 'Cloud Computing'],
       email: 'amit.kumar@techcorp.com',
       phone: '9345678012',
@@ -152,9 +157,9 @@ const MentorManagementSystem = () => {
     {
       id: 4,
       name: 'Ms. Neha Joshi',
-      department: 'Electronics',
-      type: 'Intern',
-      role: 'Intern Counselor',
+      department: 'Administration',
+      type: 'Staff',
+      role: 'Career Counselor',
       expertise: ['Resume Building', 'Interview Skills'],
       email: 'neha.joshi@example.edu',
       phone: '9456780123',
@@ -190,21 +195,23 @@ const MentorManagementSystem = () => {
 
   // Generate mentor data (50 mentors to handle 7000 students)
   const generateMentors = () => {
-    const mentorTypes = ['Faculty', 'Intern'];
+    const mentorTypes = ['Faculty', 'Intern',];
     const departments = ['Computer Science', 'Electronics', 'Mechanical', 'Electrical', 'Civil', 'Information Technology'];
     const mentors = [];
+    
     for (let i = 1; i <= 50; i++) {
       const type = mentorTypes[Math.floor(Math.random() * mentorTypes.length)];
       const dept = departments[Math.floor(Math.random() * departments.length)];
+      
       mentors.push({
         id: i,
         name: `Dr. Mentor ${i.toString().padStart(2, '0')}`,
         department: dept,
         type: type,
-        role: type === 'Faculty' ? 'Professor' : 'Intern',
+        role: type === 'Faculty' ? 'Professor' : type === 'Industry' ? 'Senior Manager' : 'Counselor',
         email: `mentor${i}@example.edu`,
         phone: `9${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`,
-        maxStudents: 50, // 50 students per mentor
+        maxStudents: Math.floor(Math.random() * 200) + 100, // 100-300 students per mentor
         expertise: ['Programming', 'Research', 'Career Guidance']
       });
     }
@@ -217,6 +224,7 @@ const MentorManagementSystem = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [expandedMentor, setExpandedMentor] = useState(null);
   const [selectedMentorDetails, setSelectedMentorDetails] = useState(null);
   const [openMentorDialog, setOpenMentorDialog] = useState(false);
 
@@ -253,7 +261,7 @@ const MentorManagementSystem = () => {
   ];
 
   // Mentor types
-  const mentorTypes = ['Faculty', 'Intern'];
+  const mentorTypes = ['Faculty', 'Industry', 'Staff', 'Alumni'];
 
   // Initialize data based on view mode
   useEffect(() => {
@@ -379,6 +387,11 @@ const MentorManagementSystem = () => {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+
+  // Handle mentor expansion
+  const handleMentorExpand = (mentorId) => {
+    setExpandedMentor(expandedMentor === mentorId ? null : mentorId);
   };
 
   // Handle mentor details dialog
@@ -524,12 +537,11 @@ const MentorManagementSystem = () => {
               variant="h3" 
               sx={{ 
                 fontWeight: 700,
+                fontSize: { xs: '2rem', sm: '2.5rem' },
                 color: '#475569',
                 margin: '0 0 8px 0',
                 letterSpacing: '-0.025em',
                 lineHeight: '1.1',
-                fontSize: "33px",
-
               }}
             >
               Mentor Management Dashboard
@@ -878,107 +890,145 @@ const MentorManagementSystem = () => {
           </Box>
         ) : (
           <Box sx={{ p: 2 }}>
-           <Grid container spacing={2}>
-  {filteredMentors
-    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    .map((mentor) => {
-      const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
-
-      return (
-        <Grid item xs={12} sm={6} md={4} key={mentor.id}>
-          <Card
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              },
-            }}
-          >
-            <CardContent sx={{ flexGrow: 1, p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar
-                  sx={{
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    fontSize: '1.5rem',
-                    backgroundColor:
-                      mentor.type === 'Faculty'
-                        ? 'primary.main'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.main'
-                        : 'grey.500',
-                  }}
-                >
-                  {mentor.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </Avatar>
-                <Box>
-                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                    {mentor.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {mentor.department} • {mentor.role}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 1, my: 2 }}>
-                <Chip
-                  label={mentor.type}
-                  size="small"
-                  sx={{
-                    backgroundColor:
-                      mentor.type === 'Faculty'
-                        ? 'primary.light'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.light'
-                        : 'grey.300',
-                    color:
-                      mentor.type === 'Faculty'
-                        ? 'primary.dark'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.dark'
-                        : 'grey.700',
-                    fontWeight: 500,
-                  }}
-                />
-              </Box>
-            </CardContent>
-
-            <Divider />
-
-            <CardActions sx={{ p: 2, justifyContent: 'space-between' }}>
-                <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {assignedStudents.length}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        Assigned Students
-                    </Typography>
-                </Box>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleOpenMentorDialog(mentor)}
-                sx={{ textTransform: 'none', boxShadow: 'none' }}
-              >
-                View Details
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      );
-    })}
-</Grid>
+            {filteredMentors
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((mentor) => {
+                const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
+                const isExpanded = expandedMentor === mentor.id;
+                
+                return (
+                  <Card 
+                    key={mentor.id} 
+                    sx={{ 
+                      mb: 2, 
+                      borderRadius: '8px',
+                      border: '1px solid',
+                      borderColor: isExpanded ? 'primary.main' : 'divider',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <Box 
+                      sx={{ 
+                        p: 2, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: '#f8f9fa' }
+                      }}
+                      onClick={() => handleMentorExpand(mentor.id)}
+                    >
+                      <Avatar 
+                        sx={{ 
+                          width: 48, 
+                          height: 48, 
+                          mr: 2,
+                          backgroundColor: 
+                            mentor.type === 'Faculty' ? 'primary.main' : 
+                            mentor.type === 'Industry' ? 'secondary.main' : 
+                            mentor.type === 'Staff' ? 'success.main' : 'warning.main'
+                        }}
+                      >
+                        {mentor.name.split(' ').map(n => n[0]).join('')}
+                      </Avatar>
+                      
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                          {mentor.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {mentor.department} • {mentor.role}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                          <Chip 
+                            label={mentor.type}
+                            size="small"
+                            sx={{ 
+                              backgroundColor: 
+                                mentor.type === 'Faculty' ? 'primary.light' : 
+                                mentor.type === 'Industry' ? 'secondary.light' : 
+                                mentor.type === 'Staff' ? 'success.light' : 'warning.light',
+                              color: 
+                                mentor.type === 'Faculty' ? 'primary.dark' : 
+                                mentor.type === 'Industry' ? 'secondary.dark' : 
+                                mentor.type === 'Staff' ? 'success.dark' : 'warning.dark'
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                      
+                      <Box sx={{ textAlign: 'center', mr: 2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          {assignedStudents.length}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Students
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Button
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenMentorDialog(mentor);
+                          }}
+                          sx={{ textTransform: 'none' }}
+                        >
+                          Details
+                        </Button>
+                        <IconButton>
+                          {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        </IconButton>
+                      </Box>
+                    </Box>
+                    
+                    <Collapse in={isExpanded}>
+                      <Divider />
+                      <Box sx={{ p: 2, backgroundColor: '#f8f9fa' }}>
+                        <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 500 }}>
+                          Assigned Students ({assignedStudents.length})
+                        </Typography>
+                        
+                        {assignedStudents.length === 0 ? (
+                          <Typography variant="body2" color="text.secondary">
+                            No students currently assigned to this mentor
+                          </Typography>
+                        ) : (
+                          <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                            <Grid container spacing={1}>
+                              {assignedStudents.map((student) => (
+                                <Grid item xs={12} sm={6} md={4} key={student.id}>
+                                  <Card 
+                                    sx={{ 
+                                      p: 1.5, 
+                                      backgroundColor: 'white',
+                                      border: '1px solid',
+                                      borderColor: 'divider',
+                                      borderRadius: '6px',
+                                      '&:hover': { borderColor: 'primary.main' }
+                                    }}
+                                  >
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                      {student.name}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {student.regNo}
+                                    </Typography>
+                                    <br />
+                                    <Typography variant="caption" color="text.secondary">
+                                      {student.department} - {student.year} Year
+                                    </Typography>
+                                  </Card>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </Box>
+                        )}
+                      </Box>
+                    </Collapse>
+                  </Card>
+                );
+              })}
           </Box>
         )}
         
@@ -1039,7 +1089,7 @@ const MentorManagementSystem = () => {
                               mr: 1,
                               backgroundColor: 
                                 mentor.type === 'Faculty' ? 'primary.main' : 
-                                mentor.type === 'Intern' ? 'secondary.main' : 'grey.500'
+                                mentor.type === 'Industry' ? 'secondary.main' : 'grey.500'
                             }}
                           >
                             {mentor.name[0]}
@@ -1080,7 +1130,7 @@ const MentorManagementSystem = () => {
                   borderLeft: '4px solid',
                   borderColor: 
                     selectedMentor.type === 'Faculty' ? 'primary.main' : 
-                    selectedMentor.type === 'Intern' ? 'secondary.main' : 'grey.500'
+                    selectedMentor.type === 'Industry' ? 'secondary.main' : 'grey.500'
                 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Mentor Information
@@ -1166,7 +1216,8 @@ const MentorManagementSystem = () => {
                     height: 64,
                     backgroundColor: 
                       selectedMentorDetails.type === 'Faculty' ? 'primary.main' : 
-                      selectedMentorDetails.type === 'Intern' ? 'secondary.main' : 'grey.500'
+                      selectedMentorDetails.type === 'Industry' ? 'secondary.main' : 
+                      selectedMentorDetails.type === 'Staff' ? 'success.main' : 'warning.main'
                   }}
                 >
                   {selectedMentorDetails.name.split(' ').map(n => n[0]).join('')}
@@ -1183,10 +1234,12 @@ const MentorManagementSystem = () => {
                       mt: 0.5,
                       backgroundColor: 
                         selectedMentorDetails.type === 'Faculty' ? 'primary.light' : 
-                        selectedMentorDetails.type === 'Intern' ? 'secondary.light' : 'grey.300',
+                        selectedMentorDetails.type === 'Industry' ? 'secondary.light' : 
+                        selectedMentorDetails.type === 'Staff' ? 'success.light' : 'warning.light',
                       color: 
                         selectedMentorDetails.type === 'Faculty' ? 'primary.dark' : 
-                        selectedMentorDetails.type === 'Intern' ? 'secondary.dark' : 'grey.700'
+                        selectedMentorDetails.type === 'Industry' ? 'secondary.dark' : 
+                        selectedMentorDetails.type === 'Staff' ? 'success.dark' : 'warning.dark'
                     }}
                   />
                 </Box>

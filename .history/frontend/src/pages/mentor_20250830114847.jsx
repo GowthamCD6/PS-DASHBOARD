@@ -59,7 +59,6 @@ import {
   Assignment as AssignmentIcon,
   Mail as MailIcon,
   Phone as PhoneIcon,
-  Info as InfoIcon,
   AdminPanelSettings as AdminIcon,
   Group as GroupIcon,
   ViewList as ViewListIcon,

@@ -402,7 +402,7 @@ const MenteeDashboard = () => {
       fontWeight: "700",
       color: "#475569",
       margin: "0 0 8px 0",
-      marginTop: '11px',
+      marginTop: '17px',
       letterSpacing: "-0.025em",
       lineHeight: "1.1",
     },

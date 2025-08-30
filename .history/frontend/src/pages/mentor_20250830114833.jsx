@@ -44,8 +44,7 @@ import {
   Tabs,
   Tab,
   ToggleButton,
-  ToggleButtonGroup,
-  CardActions
+  ToggleButtonGroup
 } from '@mui/material';
 import {
   Add as AddIcon,
