@@ -1,14 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import {
-  Search,
-  Plus,
-  ChevronDown,
-  Filter,
-  ArrowUp,
-  ArrowDown,
-  X,
-  Target,
-} from "lucide-react";
+import { ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   TableCell,
   Box,
@@ -17,7 +8,6 @@ import {
   TextField,
   IconButton,
   Popover,
-  Typography,
   Button,
   FormControl,
   InputLabel,
@@ -29,92 +19,74 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
+import { Height } from "@mui/icons-material";
 
-// API services commented out for now
-// import { studentService } from '../services';
-// import { useApiCall } from '../hooks/useApiCall';
-
-const initialStudents = [
-  {
-    id: 1,
-    name: "Jon Snow",
-    regNo: "2021CSE001",
-    department: "CSE",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 7,
-    cumulativeRewards: 850,
-    currentSemRewards: 120,
-    skills: {
-      JavaScript: { level: 8, daysAgo: 3 },
-      Python: { level: 6, daysAgo: 7 },
-      React: { level: 7, daysAgo: 5 },
+// Initial mentee data (students under this mentor)
+const initialMentees = [
+    {
+        id: 1,
+        name: "Rahul Sharma",
+        regNo: "7376242CSE163",
+        department: "CSE",
+        year: "III",
+        totalLevels: 10,
+        completedLevels: 7,
+        cumulativeRewards: 850,
+        currentSemRewards: 120,
+        skills: {
+            JavaScript: { level: 8, daysAgo: 3 },
+            Python: { level: 6, daysAgo: 7 },
+            React: { level: 7, daysAgo: 5 },
+        },
     },
-  },
-  {
-    id: 2,
-    name: "Cersei Lannister",
-    regNo: "2021IT002",
-    department: "IT",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 9,
-    cumulativeRewards: 1200,
-    currentSemRewards: 180,
-    skills: {
-      JavaScript: { level: 9, daysAgo: 1 },
-      Python: { level: 8, daysAgo: 2 },
-      React: { level: 6, daysAgo: 4 },
+    {
+        id: 2,
+        name: "Priya Gupta",
+        regNo: "7376243CSE164",
+        department: "CSE",
+        year: "III",
+        totalLevels: 8,
+        completedLevels: 6,
+        cumulativeRewards: 1200,
+        currentSemRewards: 180,
+        skills: {
+            JavaScript: { level: 9, daysAgo: 1 },
+            Python: { level: 8, daysAgo: 2 },
+            React: { level: 6, daysAgo: 4 },
+        },
     },
-  },
-  {
-    id: 3,
-    name: "Jaime Lannister",
-    regNo: "2022ECE003",
-    department: "ECE",
-    year: "II",
-    totalLevels: 10,
-    completedLevels: 4,
-    cumulativeRewards: 420,
-    currentSemRewards: 65,
-    skills: {
-      JavaScript: { level: 5, daysAgo: 12 },
-      Python: { level: 4, daysAgo: 15 },
-      React: { level: 3, daysAgo: 18 },
+    {
+        id: 3,
+        name: "Amit Singh",
+        regNo: "7376244CSE165",
+        department: "CSE",
+        year: "III",
+        totalLevels: 12,
+        completedLevels: 9,
+        cumulativeRewards: 420,
+        currentSemRewards: 65,
+        skills: {
+            JavaScript: { level: 5, daysAgo: 12 },
+            Python: { level: 4, daysAgo: 15 },
+            React: { level: 3, daysAgo: 18 },
+        },
     },
-  },
-  {
-    id: 4,
-    name: "Arya Stark",
-    regNo: "2020EEE004",
-    department: "EEE",
-    year: "IV",
-    totalLevels: 10,
-    completedLevels: 10,
-    cumulativeRewards: 1500,
-    currentSemRewards: 220,
-    skills: {
-      JavaScript: { level: 10, daysAgo: 999 },
-      Python: { level: 9, daysAgo: 1 },
-      React: { level: 8, daysAgo: 2 },
+    {
+        id: 4,
+        name: "Sneha Patel",
+        regNo: "7376245CSE166",
+        department: "CSE",
+        year: "III",
+        totalLevels: 15,
+        completedLevels: 12,
+        cumulativeRewards: 1500,
+        currentSemRewards: 220,
+        skills: {
+            JavaScript: { level: 10, daysAgo: 999 },
+            Python: { level: 9, daysAgo: 1 },
+            React: { level: 8, daysAgo: 2 },
+        },
     },
-  },
-  {
-    id: 5,
-    name: "Daenerys Targaryen",
-    regNo: "2021MECH005",
-    department: "MECH",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 6,
-    cumulativeRewards: 680,
-    currentSemRewards: 95,
-    skills: {
-      JavaScript: { level: 5, daysAgo: 18 },
-      Python: { level: 8, daysAgo: 6 },
-      React: { level: 4, daysAgo: 20 },
-    },
-  },
 ];
 
 const availableSkills = [
@@ -128,9 +100,10 @@ const availableSkills = [
   "Vue.js",
 ];
 
-const Dash = () => {
-  // Simplified state management - no API for now
-  const [students, setStudents] = useState(initialStudents);
+
+const MenteeDashboard = () => {
+  // State management
+  const [mentees, setMentees] = useState(initialMentees);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -160,10 +133,6 @@ const Dash = () => {
   ]);
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
-  const [showNameSearch, setShowNameSearch] = useState(false);
-  const [showRegNoSearch, setShowRegNoSearch] = useState(false);
-  const [showCumulativeFilter, setShowCumulativeFilter] = useState(false);
-  const [showCurrentSemFilter, setShowCurrentSemFilter] = useState(false);
 
   // MUI Popover states
   const [cumulativeAnchorEl, setCumulativeAnchorEl] = useState(null);
@@ -223,32 +192,6 @@ const Dash = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".filter-popup")) {
-        setShowNameSearch(false);
-        setShowRegNoSearch(false);
-        setShowCumulativeFilter(false);
-        setShowCurrentSemFilter(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Get level badge color
-  const getLevelBadgeColor = (level) => {
-    if (level >= 9) return "#059669"; // emerald-600
-    if (level >= 7) return "#16a34a"; // green-600
-    if (level >= 5) return "#ca8a04"; // yellow-600
-    if (level >= 3) return "#ea580c"; // orange-600
-    return "#dc2626"; // red-600
-  };
-
   // Get days ago color with mild colors
   const getDaysColor = (days) => {
     if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" }; // mild green
@@ -256,29 +199,29 @@ const Dash = () => {
     return { bg: "#fecaca", text: "#dc2626" }; // mild red
   };
 
-  // Filter students
-  const filteredStudents = useMemo(() => {
-    if (!students || !Array.isArray(students)) return [];
+  // Filter mentees
+  const filteredMentees = useMemo(() => {
+    if (!mentees || !Array.isArray(mentees)) return [];
 
-    return students.filter((student) => {
-      if (!student || !student.skills) return false;
+    return mentees.filter((mentee) => {
+      if (!mentee || !mentee.skills) return false;
 
-      if (filters.role !== "all" && filters.role !== "all") return false;
-      if (filters.year !== "all" && student.year !== filters.year) return false;
+      if (filters.role !== "all" && filters.role !== "mentee") return false;
+      if (filters.year !== "all" && mentee.year !== filters.year) return false;
       if (
         filters.department !== "all" &&
-        student.department !== filters.department
+        mentee.department !== filters.department
       )
         return false;
 
       if (
         nameSearch &&
-        !student.name.toLowerCase().includes(nameSearch.toLowerCase())
+        !mentee.name.toLowerCase().includes(nameSearch.toLowerCase())
       )
         return false;
       if (
         regNoSearch &&
-        !student.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
+        !mentee.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
       )
         return false;
 
@@ -286,17 +229,17 @@ const Dash = () => {
         const value = parseInt(cumulativeFilter.value);
         if (
           cumulativeFilter.type === "equal" &&
-          student.cumulativeRewards !== value
+          mentee.cumulativeRewards !== value
         )
           return false;
         if (
           cumulativeFilter.type === "greater" &&
-          student.cumulativeRewards <= value
+          mentee.cumulativeRewards <= value
         )
           return false;
         if (
           cumulativeFilter.type === "less" &&
-          student.cumulativeRewards >= value
+          mentee.cumulativeRewards >= value
         )
           return false;
       }
@@ -305,33 +248,33 @@ const Dash = () => {
         const value = parseInt(currentSemFilter.value);
         if (
           currentSemFilter.type === "equal" &&
-          student.currentSemRewards !== value
+          mentee.currentSemRewards !== value
         )
           return false;
         if (
           currentSemFilter.type === "greater" &&
-          student.currentSemRewards <= value
+          mentee.currentSemRewards <= value
         )
           return false;
         if (
           currentSemFilter.type === "less" &&
-          student.currentSemRewards >= value
+          mentee.currentSemRewards >= value
         )
           return false;
       }
 
       for (const skillCol of skillColumns) {
         if (skillCol.levelFilter) {
-          const skillData = student.skills && student.skills[skillCol.skill];
-          const studentLevel = skillData ? skillData.level : 0;
-          if (studentLevel !== parseInt(skillCol.levelFilter)) return false;
+          const skillData = mentee.skills && mentee.skills[skillCol.skill];
+          const menteeLevel = skillData ? skillData.level : 0;
+          if (menteeLevel !== parseInt(skillCol.levelFilter)) return false;
         }
       }
 
       return true;
     });
   }, [
-    students,
+    mentees,
     filters,
     nameSearch,
     regNoSearch,
@@ -340,12 +283,12 @@ const Dash = () => {
     skillColumns,
   ]);
 
-  // Sort students
-  const sortedStudents = useMemo(() => {
-    if (!filteredStudents || !Array.isArray(filteredStudents)) return [];
-    if (!sortConfig.key || !sortConfig.direction) return filteredStudents;
+  // Sort mentees
+  const sortedMentees = useMemo(() => {
+    if (!filteredMentees || !Array.isArray(filteredMentees)) return [];
+    if (!sortConfig.key || !sortConfig.direction) return filteredMentees;
 
-    return [...filteredStudents].sort((a, b) => {
+    return [...filteredMentees].sort((a, b) => {
       let aVal, bVal;
 
       if (sortConfig.key === "completedLevels") {
@@ -376,7 +319,7 @@ const Dash = () => {
       if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [filteredStudents, sortConfig, skillColumns]);
+  }, [filteredMentees, sortConfig, skillColumns]);
 
   const handleSort = (key) => {
     setSortConfig((prev) => {
@@ -437,10 +380,9 @@ const Dash = () => {
     return <ChevronDown size={12} color="#9ca3af" />;
   };
 
+  // Styles object, consistent with the reference component
   const styles = {
-    // MODIFIED: Changed background color to match the image
     container: {
-      minHeight: "100vh",
       width: "100%",
       backgroundColor: "#f6f7fb",
       fontFamily:
@@ -449,6 +391,7 @@ const Dash = () => {
       flexDirection: "column",
       position: "relative",
       top: "-30px",
+      height: "100%",
     },
     header: {
       padding: "20px 35px",
@@ -461,8 +404,8 @@ const Dash = () => {
       fontWeight: "700",
       color: "#475569",
       margin: "0 0 8px 0",
+      mar
       letterSpacing: "-0.025em",
-      marginTop: '40px', 
       lineHeight: "1.1",
     },
     filtersContainer: {
@@ -496,7 +439,6 @@ const Dash = () => {
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       margin: "24px auto",
       width: "97.5%",
-      flex: "1",
     },
     tableWrapper: {
       overflowX: "auto",
@@ -588,7 +530,7 @@ const Dash = () => {
           marginBottom: "-22px",
         }}
       >
-        <h3 style={styles.title}>Student Skills Dashboard</h3>
+        <h3 style={styles.title}>Mentees Skill Dashboard</h3>
       </div>
 
       <div style={styles.filtersContainer}>
@@ -612,9 +554,7 @@ const Dash = () => {
                 }}
               >
                 <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="hod">HOD</MenuItem>
+                <MenuItem value="mentee">Mentee</MenuItem>
               </Select>
             </FormControl>
 
@@ -783,11 +723,14 @@ const Dash = () => {
                   </Box>
                   <IconButton
                     size="small"
-                    onClick={handleNameOpen}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNameOpen(e);
+                    }}
                     sx={{
                       position: "absolute",
                       top: "50%",
-                      right: "25px",
+                      right: "5px",
                       transform: "translateY(-50%)",
                     }}
                   >
@@ -906,8 +849,9 @@ const Dash = () => {
                       sx={{
                         p: 2,
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        gridTemplateColumns: "auto auto",
                         gap: 1,
+                        alignItems: "center",
                       }}
                     >
                       <Select
@@ -941,6 +885,7 @@ const Dash = () => {
                         size="small"
                         variant="contained"
                         onClick={handleCumulativeApply}
+                        sx={{ gridColumn: "1" }}
                       >
                         Apply
                       </Button>
@@ -948,6 +893,7 @@ const Dash = () => {
                         size="small"
                         variant="outlined"
                         onClick={handleCumulativeClear}
+                        sx={{ gridColumn: "2" }}
                       >
                         Clear
                       </Button>
@@ -998,8 +944,9 @@ const Dash = () => {
                       sx={{
                         p: 2,
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        gridTemplateColumns: "auto auto",
                         gap: 1,
+                        alignItems: "center",
                       }}
                     >
                       <Select
@@ -1033,6 +980,7 @@ const Dash = () => {
                         size="small"
                         variant="contained"
                         onClick={handleCurrentSemApply}
+                        sx={{ gridColumn: "1" }}
                       >
                         Apply
                       </Button>
@@ -1040,6 +988,7 @@ const Dash = () => {
                         size="small"
                         variant="outlined"
                         onClick={handleCurrentSemClear}
+                        sx={{ gridColumn: "2" }}
                       >
                         Clear
                       </Button>
@@ -1125,9 +1074,9 @@ const Dash = () => {
             </thead>
 
             <tbody style={styles.tbody}>
-              {sortedStudents.map((student) => (
+              {sortedMentees.map((mentee) => (
                 <tr
-                  key={student.id}
+                  key={mentee.id}
                   style={styles.tr}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#f8fafc";
@@ -1151,24 +1100,24 @@ const Dash = () => {
                   }}
                 >
                   <td style={{ ...styles.td, padding: "16px 24px" }}>
-                    {student.totalLevels}
+                    {mentee.totalLevels}
                   </td>
                   <td style={styles.td}>
                     <span
                       style={styles.completedBadge}
                       className="completed-badge-hover"
                     >
-                      {student.completedLevels}
+                      {mentee.completedLevels}
                     </span>
                   </td>
 
                   <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
-                    <div style={styles.nameMain}>{student.name}</div>
+                    <div style={styles.nameMain}>{mentee.name}</div>
                   </td>
 
-                  <td style={{ ...styles.td, textAlign: "left" }}>{student.regNo}</td>
+                  <td style={{ ...styles.td, textAlign: "left" }}>{mentee.regNo}</td>
                   <td style={{ ...styles.td, ...styles.rewardPoints }}>
-                    {student.cumulativeRewards}
+                    {mentee.cumulativeRewards}
                   </td>
                   <td
                     style={{
@@ -1177,12 +1126,12 @@ const Dash = () => {
                       minWidth: "200px",
                     }}
                   >
-                    {student.currentSemRewards}
+                    {mentee.currentSemRewards}
                   </td>
 
                   {skillColumns.map((skillCol) => {
                     const skillData =
-                      student.skills && student.skills[skillCol.skill];
+                      mentee.skills && mentee.skills[skillCol.skill];
                     if (!skillData)
                       return (
                         <td
@@ -1235,4 +1184,4 @@ const Dash = () => {
   );
 };
 
-export default Dash;
+export default MenteeDashboard;

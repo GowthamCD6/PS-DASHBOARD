@@ -517,7 +517,7 @@ const MentorManagementSystem = () => {
   return (
     <Box sx={{ 
       p: { xs: 2, sm: 3 },
-      backgroundColor: '#f6f7fb',
+      backgroundColor: '#f5f5f5',
       minHeight: '100vh',
       width: '100%',
     }}>
@@ -526,33 +526,27 @@ const MentorManagementSystem = () => {
         sx={{ 
           p: { xs: 2, sm: 3 },
           mb: 3,
-          background: "white",
-          color: '#475569',
-          borderRadius: '12px',
-          boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
+          background: "#667eea",
+          color: 'white',
+          borderRadius: '12px'
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography 
-              variant="h3" 
+              variant="h4" 
               sx={{ 
-                fontWeight: 700,
-                fontSize: { xs: '2rem', sm: '2.5rem' },
-                color: '#475569',
-                margin: '0 0 8px 0',
-                letterSpacing: '-0.025em',
-                lineHeight: '1.1',
+                fontWeight: 600,
+                fontSize: { xs: '1.5rem', sm: '2rem' }
               }}
             >
-              Mentor Management Dashboard
+              {viewMode === 'assignment' ? 'Mentor Assignment System' : 'Student-Mentor Mapping System'}
             </Typography>
             <Typography 
               variant="subtitle1" 
               sx={{ 
-                opacity: 0.9,
-                fontSize: { xs: '0.95rem', sm: '1.1rem' },
-                color: '#475569',
+                mt: 1,
+                opacity: 0.9
               }}
             >
               {viewMode === 'assignment' 
@@ -569,19 +563,11 @@ const MentorManagementSystem = () => {
               sx={{ 
                 backgroundColor: 'rgba(255,255,255,0.2)',
                 '& .MuiToggleButton-root': {
-                  color: '#475569',
-                  border: '1px solid #e2e8f0',
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  '& .MuiSvgIcon-root': {
-                    color: '#475569',
-                  },
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
                   '&.Mui-selected': {
-                    backgroundColor: '#e0e7ff',
-                    color: '#2563eb',
-                    '& .MuiSvgIcon-root': {
-                      color: '#2563eb',
-                    }
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                    color: 'white'
                   }
                 }
               }}

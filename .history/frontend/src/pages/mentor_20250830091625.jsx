@@ -526,7 +526,7 @@ const MentorManagementSystem = () => {
         sx={{ 
           p: { xs: 2, sm: 3 },
           mb: 3,
-          background: "white",
+          backgroundColor: "white",
           color: '#475569',
           borderRadius: '12px',
           boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
@@ -535,24 +535,25 @@ const MentorManagementSystem = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography 
-              variant="h3" 
+              variant="h4" 
               sx={{ 
                 fontWeight: 700,
                 fontSize: { xs: '2rem', sm: '2.5rem' },
                 color: '#475569',
-                margin: '0 0 8px 0',
+                mb: 1,
                 letterSpacing: '-0.025em',
                 lineHeight: '1.1',
               }}
             >
-              Mentor Management Dashboard
+              {viewMode === 'assignment' ? 'Mentor Assignment System' : 'Student-Mentor Mapping System'}
             </Typography>
             <Typography 
               variant="subtitle1" 
               sx={{ 
+                mt: 1,
                 opacity: 0.9,
-                fontSize: { xs: '0.95rem', sm: '1.1rem' },
-                color: '#475569',
+                color: '#334155',
+                fontSize: { xs: '1rem', sm: '1.1rem' },
               }}
             >
               {viewMode === 'assignment' 
@@ -567,21 +568,13 @@ const MentorManagementSystem = () => {
               exclusive
               onChange={(e, newMode) => newMode && setViewMode(newMode)}
               sx={{ 
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: '#f6f7fb',
                 '& .MuiToggleButton-root': {
                   color: '#475569',
                   border: '1px solid #e2e8f0',
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  '& .MuiSvgIcon-root': {
-                    color: '#475569',
-                  },
                   '&.Mui-selected': {
                     backgroundColor: '#e0e7ff',
-                    color: '#2563eb',
-                    '& .MuiSvgIcon-root': {
-                      color: '#2563eb',
-                    }
+                    color: '#2563eb'
                   }
                 }
               }}
@@ -596,7 +589,7 @@ const MentorManagementSystem = () => {
               </ToggleButton>
             </ToggleButtonGroup>
             <Tooltip title={viewMode === 'assignment' ? 'Admin Dashboard' : 'Mentor Management'}>
-              <Avatar sx={{ backgroundColor: 'white', color: '#1976d2' }}>
+              <Avatar sx={{ backgroundColor: '#e0e7ff', color: '#2563eb' }}>
                 {viewMode === 'assignment' ? <AdminIcon /> : <GroupIcon />}
               </Avatar>
             </Tooltip>

@@ -569,19 +569,11 @@ const MentorManagementSystem = () => {
               sx={{ 
                 backgroundColor: 'rgba(255,255,255,0.2)',
                 '& .MuiToggleButton-root': {
-                  color: '#475569',
-                  border: '1px solid #e2e8f0',
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  '& .MuiSvgIcon-root': {
-                    color: '#475569',
-                  },
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
                   '&.Mui-selected': {
-                    backgroundColor: '#e0e7ff',
-                    color: '#2563eb',
-                    '& .MuiSvgIcon-root': {
-                      color: '#2563eb',
-                    }
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                    color: 'white'
                   }
                 }
               }}
