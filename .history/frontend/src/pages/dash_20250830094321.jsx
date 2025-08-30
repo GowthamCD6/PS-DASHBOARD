@@ -462,7 +462,7 @@ const Dash = () => {
       color: "#475569",
       margin: "0 0 8px 0",
       letterSpacing: "-0.025em",
-      marginTop: '40px', 
+      marginTop: , 
       lineHeight: "1.1",
     },
     filtersContainer: {

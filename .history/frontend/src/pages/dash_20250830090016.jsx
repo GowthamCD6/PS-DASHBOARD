@@ -462,7 +462,6 @@ const Dash = () => {
       color: "#475569",
       margin: "0 0 8px 0",
       letterSpacing: "-0.025em",
-      marginTop: '40px', 
       lineHeight: "1.1",
     },
     filtersContainer: {
@@ -471,7 +470,7 @@ const Dash = () => {
       border: "1px solid #e2e8f0",
       padding: "20px",
       margin: "24px auto 0",
-      width: "97.5%",
+      width: "95%",
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
     },
     filtersRow: {
@@ -495,7 +494,7 @@ const Dash = () => {
       overflow: "hidden",
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       margin: "24px auto",
-      width: "97.5%",
+      width: "100%",
       flex: "1",
     },
     tableWrapper: {
