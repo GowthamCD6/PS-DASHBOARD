@@ -63,7 +63,6 @@ import {
   AdminPanelSettings as AdminIcon,
   Group as GroupIcon,
   ViewList as ViewListIcon,
-  AccountTree as AccountTreeIcon
 } from '@mui/icons-material';
 import AddMentor from '../components/Modals/AddMentor';
 

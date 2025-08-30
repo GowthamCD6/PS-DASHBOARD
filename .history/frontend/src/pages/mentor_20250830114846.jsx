@@ -53,7 +53,6 @@ import {
   Edit as EditIcon,
   FilterList as FilterListIcon,
   Search as SearchIcon,
-  School as SchoolIcon,
   Business as BusinessIcon,
   Person as PersonIcon,
   Assignment as AssignmentIcon,

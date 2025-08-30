@@ -44,8 +44,7 @@ import {
   Tabs,
   Tab,
   ToggleButton,
-  ToggleButtonGroup,
-  CardActions
+  ToggleButtonGroup
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -69,20 +68,9 @@ import AddMentor from '../components/Modals/AddMentor';
 
 const MentorManagementSystem = () => {
   // View mode state
-  const [viewMode, setViewMode] = useState('assignment'); // 'assignment' or 'mapping'
-
-  // Enhanced students data with more realistic fields (original format)
-  const [originalStudents, setOriginalStudents] = useState([
-    {
-      id: 1,
-      name: 'Rahul Sharma',
-      regNo: '20CS001',
-      department: 'Computer Science',
-      year: 'III',
-      email: 'rahul.sharma@example.edu',
-      phone: '9876543210',
       mentors: [
-        { id: 1, name: 'Dr. Priya Patel', role: 'Academic Mentor', type: 'Faculty' }
+        { id: 1, name: 'Dr. Priya Patel', role: 'Academic Mentor', type: 'Faculty' },
+        { id: 3, name: 'Mr. Amit Kumar', role: 'Industry Mentor', type: 'Industry' }
       ]
     },
     {
@@ -878,107 +866,82 @@ const MentorManagementSystem = () => {
           </Box>
         ) : (
           <Box sx={{ p: 2 }}>
-           <Grid container spacing={2}>
-  {filteredMentors
-    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    .map((mentor) => {
-      const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
-
-      return (
-        <Grid item xs={12} sm={6} md={4} key={mentor.id}>
-          <Card
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              },
-            }}
-          >
-            <CardContent sx={{ flexGrow: 1, p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar
-                  sx={{
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    fontSize: '1.5rem',
-                    backgroundColor:
-                      mentor.type === 'Faculty'
-                        ? 'primary.main'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.main'
-                        : 'grey.500',
-                  }}
-                >
-                  {mentor.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </Avatar>
-                <Box>
-                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                    {mentor.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {mentor.department} • {mentor.role}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 1, my: 2 }}>
-                <Chip
-                  label={mentor.type}
-                  size="small"
-                  sx={{
-                    backgroundColor:
-                      mentor.type === 'Faculty'
-                        ? 'primary.light'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.light'
-                        : 'grey.300',
-                    color:
-                      mentor.type === 'Faculty'
-                        ? 'primary.dark'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.dark'
-                        : 'grey.700',
-                    fontWeight: 500,
-                  }}
-                />
-              </Box>
-            </CardContent>
-
-            <Divider />
-
-            <CardActions sx={{ p: 2, justifyContent: 'space-between' }}>
-                <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {assignedStudents.length}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        Assigned Students
-                    </Typography>
-                </Box>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleOpenMentorDialog(mentor)}
-                sx={{ textTransform: 'none', boxShadow: 'none' }}
-              >
-                View Details
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      );
-    })}
-</Grid>
+            <Grid container spacing={2}>
+              {filteredMentors
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((mentor) => {
+                  const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
+                  
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={mentor.id}>
+                      <Card 
+                        sx={{ 
+                          mb: 2, 
+                          borderRadius: '8px',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <CardContent>
+                          <Avatar 
+                            sx={{ 
+                              width: 48, 
+                              height: 48, 
+                              mr: 2,
+                              backgroundColor: 
+                                mentor.type === 'Faculty' ? 'primary.main' : 
+                                mentor.type === 'Intern' ? 'secondary.main' : 'grey.500'
+                            }}
+                          >
+                            {mentor.name.split(' ').map(n => n[0]).join('')}
+                          </Avatar>
+                          
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                              {mentor.name}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {mentor.department} • {mentor.role}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                              <Chip 
+                                label={mentor.type}
+                                size="small"
+                                sx={{ 
+                                  backgroundColor: 
+                                    mentor.type === 'Faculty' ? 'primary.light' : 
+                                    mentor.type === 'Intern' ? 'secondary.light' : 'grey.300',
+                                  color: 
+                                    mentor.type === 'Faculty' ? 'primary.dark' : 
+                                    mentor.type === 'Intern' ? 'secondary.dark' : 'grey.700'
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                          
+                          <Box sx={{ textAlign: 'center', mr: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                              {assignedStudents.length}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Students
+                            </Typography>
+                          </Box>
+                          
+                          <Button
+                            size="small"
+                            onClick={() => handleOpenMentorDialog(mentor)}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            Details
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
+            </Grid>
           </Box>
         )}
         
