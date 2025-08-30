@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import {
   Search,
   Plus,
@@ -255,6 +256,19 @@ const Dash = () => {
     if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" }; // mild orange
     return { bg: "#fecaca", text: "#dc2626" }; // mild red
   };
+
+useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/student/get_all_users");
+        setUsers(response.data); // update state with API data
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers(); // call the async function
+  }, []); 
 
   // Filter students
   const filteredStudents = useMemo(() => {
