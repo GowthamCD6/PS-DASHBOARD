@@ -31,93 +31,6 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 
-// API services commented out for now
-// import { studentService } from '../services';
-// import { useApiCall } from '../hooks/useApiCall';
-
-const initialStudents = [
-  {
-    id: 1,
-    name: "Jon Snow",
-    regNo: "2021CSE001",
-    department: "CSE",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 7,
-    cumulativeRewards: 850,
-    currentSemRewards: 120,
-    skills: {
-      JavaScript: { level: 8, daysAgo: 3 },
-      Python: { level: 6, daysAgo: 7 },
-      React: { level: 7, daysAgo: 5 },
-    },
-  },
-  {
-    id: 2,
-    name: "Cersei Lannister",
-    regNo: "2021IT002",
-    department: "IT",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 9,
-    cumulativeRewards: 1200,
-    currentSemRewards: 180,
-    skills: {
-      JavaScript: { level: 9, daysAgo: 1 },
-      Python: { level: 8, daysAgo: 2 },
-      React: { level: 6, daysAgo: 4 },
-    },
-  },
-  {
-    id: 3,
-    name: "Jaime Lannister",
-    regNo: "2022ECE003",
-    department: "ECE",
-    year: "II",
-    totalLevels: 10,
-    completedLevels: 4,
-    cumulativeRewards: 420,
-    currentSemRewards: 65,
-    skills: {
-      JavaScript: { level: 5, daysAgo: 12 },
-      Python: { level: 4, daysAgo: 15 },
-      React: { level: 3, daysAgo: 18 },
-    },
-  },
-  {
-    id: 4,
-    name: "Arya Stark",
-    regNo: "2020EEE004",
-    department: "EEE",
-    year: "IV",
-    totalLevels: 10,
-    completedLevels: 10,
-    cumulativeRewards: 1500,
-    currentSemRewards: 220,
-    skills: {
-      JavaScript: { level: 10, daysAgo: 999 },
-      Python: { level: 9, daysAgo: 1 },
-      React: { level: 8, daysAgo: 2 },
-    },
-  },
-  {
-    id: 5,
-    name: "Daenerys Targaryen",
-    regNo: "2021MECH005",
-    department: "MECH",
-    year: "III",
-    totalLevels: 10,
-    completedLevels: 6,
-    cumulativeRewards: 680,
-    currentSemRewards: 95,
-    skills: {
-      JavaScript: { level: 5, daysAgo: 18 },
-      Python: { level: 8, daysAgo: 6 },
-      React: { level: 4, daysAgo: 20 },
-    },
-  },
-];
-
 const availableSkills = [
   "JavaScript",
   "Python",
@@ -129,9 +42,12 @@ const availableSkills = [
   "Vue.js",
 ];
 
+const deptMap = { 1: "CSE", 2: "IT", 3: "ECE", 4: "EEE", 5: "MECH" };
+const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
+
 const Dash = () => {
-  // Simplified state management - no API for now
-  const [students, setStudents] = useState(initialStudents);
+  // API-driven state!
+  const [students, setStudents] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -180,9 +96,54 @@ const Dash = () => {
   const [nameAnchorEl, setNameAnchorEl] = useState(null);
   const [regNoAnchorEl, setRegNoAnchorEl] = useState(null);
 
+  // --- Fetch students from API ---
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/student/get_all_users");
+        if (Array.isArray(response.data)) {
+          // Map response to UI fields and fill missing fields with dummy data
+          const transformed = response.data.map((student, idx) => ({
+            id: student.user_id || idx,
+            name: student.name || "Unknown Name",
+            regNo: student.user_id || `REG${idx + 1}`,
+            department: deptMap[student.dept] || "CSE",
+            year: yearMap[student.year] || "I",
+            completedLevels: student.completedLevels ?? Math.floor(Math.random() * 10) + 1,
+            totalLevels: student.totalLevels ?? Math.floor(Math.random() * 12) + 10,
+            cumulativeRewards: student.cumulativeRewards ?? Math.floor(Math.random() * 100) + 1,
+            currentSemRewards: student.currentSemRewards ?? Math.floor(Math.random() * 50) + 1,
+            skills: (() => {
+              const out = {};
+              skillColumns.forEach((col) => {
+                out[col.skill] =
+                  (student.skills?.[col.skill]) ||
+                  {
+                    level: Math.floor(Math.random() * 10) + 1,
+                    daysAgo: Math.floor(Math.random() * 30) + 1,
+                  };
+              });
+              return out;
+            })(),
+          }));
+          setStudents(transformed);
+        } else {
+          throw new Error("API response is not an array");
+        }
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: "Error fetching students from API",
+          severity: "error",
+        });
+      }
+    };
+
+    fetchStudents();
+  }, [skillColumns]);
+
   // MUI Popover handlers
-  const handleCumulativeOpen = (event) =>
-    setCumulativeAnchorEl(event.currentTarget);
+  const handleCumulativeOpen = (event) => setCumulativeAnchorEl(event.currentTarget);
   const handleCumulativeClose = () => setCumulativeAnchorEl(null);
   const handleCumulativeApply = () => {
     setCumulativeFilter({
@@ -197,8 +158,7 @@ const Dash = () => {
     handleCumulativeClose();
   };
 
-  const handleCurrentSemOpen = (event) =>
-    setCurrentSemAnchorEl(event.currentTarget);
+  const handleCurrentSemOpen = (event) => setCurrentSemAnchorEl(event.currentTarget);
   const handleCurrentSemClose = () => setCurrentSemAnchorEl(null);
   const handleCurrentSemApply = () => {
     setCurrentSemFilter({
@@ -224,7 +184,7 @@ const Dash = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // Click outside handler
+  // Click outside handler for popups
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".filter-popup")) {
@@ -243,41 +203,28 @@ const Dash = () => {
 
   // Get level badge color
   const getLevelBadgeColor = (level) => {
-    if (level >= 9) return "#059669"; // emerald-600
-    if (level >= 7) return "#16a34a"; // green-600
-    if (level >= 5) return "#ca8a04"; // yellow-600
-    if (level >= 3) return "#ea580c"; // orange-600
-    return "#dc2626"; // red-600
+    if (level >= 9) return "#059669";
+    if (level >= 7) return "#16a34a";
+    if (level >= 5) return "#ca8a04";
+    if (level >= 3) return "#ea580c";
+    return "#dc2626";
   };
 
   // Get days ago color with mild colors
   const getDaysColor = (days) => {
-    if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" }; // mild green
-    if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" }; // mild orange
-    return { bg: "#fecaca", text: "#dc2626" }; // mild red
+    if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" };
+    if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" };
+    return { bg: "#fecaca", text: "#dc2626" };
   };
 
-useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/student/get_all_users");
-        setUsers(response.data); // update state with API data
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    fetchUsers(); // call the async function
-  }, []); 
-
-  // Filter students
+  // --- Filter students ---
   const filteredStudents = useMemo(() => {
     if (!students || !Array.isArray(students)) return [];
 
     return students.filter((student) => {
       if (!student || !student.skills) return false;
 
-      if (filters.role !== "all" && filters.role !== "all") return false;
+      if (filters.role !== "all" && filters.role !== "all") return false; // role filtering: not implemented
       if (filters.year !== "all" && student.year !== filters.year) return false;
       if (
         filters.department !== "all" &&
@@ -354,7 +301,7 @@ useEffect(() => {
     skillColumns,
   ]);
 
-  // Sort students
+  // --- Sort students ---
   const sortedStudents = useMemo(() => {
     if (!filteredStudents || !Array.isArray(filteredStudents)) return [];
     if (!sortConfig.key || !sortConfig.direction) return filteredStudents;
@@ -452,7 +399,6 @@ useEffect(() => {
   };
 
   const styles = {
-    // MODIFIED: Changed background color to match the image
     container: {
       minHeight: "100vh",
       width: "100%",
@@ -593,7 +539,6 @@ useEffect(() => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
       <div
         style={{
           ...styles.header,
@@ -604,7 +549,6 @@ useEffect(() => {
       >
         <h3 style={styles.title}>Student Skills Dashboard</h3>
       </div>
-
       <div style={styles.filtersContainer}>
         <div style={styles.filtersRow}>
           <div style={styles.filtersLeft}>
@@ -631,7 +575,6 @@ useEffect(() => {
                 <MenuItem value="hod">HOD</MenuItem>
               </Select>
             </FormControl>
-
             <FormControl sx={{ minWidth: 140 }}>
               <InputLabel id="year-select-label">YEAR</InputLabel>
               <Select
@@ -656,7 +599,6 @@ useEffect(() => {
                 <MenuItem value="IV">IV Year</MenuItem>
               </Select>
             </FormControl>
-
             <FormControl sx={{ minWidth: 230 }}>
               <InputLabel id="department-select-label">DEPARTMENT</InputLabel>
               <Select
@@ -686,7 +628,6 @@ useEffect(() => {
               </Select>
             </FormControl>
           </div>
-
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -708,56 +649,45 @@ useEffect(() => {
           </Button>
         </div>
       </div>
-
       <div style={styles.tableContainer}>
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
             <thead style={styles.thead}>
               <tr>
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 24px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    width: "120px",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                    }}
-                  >
+                <TableCell sx={{
+                  fontWeight: "600",
+                  backgroundColor: "#f8fafc",
+                  padding: "16px 24px",
+                  fontSize: "14px",
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  width: "120px",
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                  }}>
                     <span>
-                      Total
-                      <br /> Levels
+                      Total <br /> Levels
                     </span>
                   </Box>
                 </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                <TableCell sx={{
+                  fontWeight: "600",
+                  backgroundColor: "#f8fafc",
+                  padding: "16px 32px",
+                  fontSize: "14px",
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  position: "relative",
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
                     <span>Completed</span>
                   </Box>
                   <IconButton
@@ -773,26 +703,21 @@ useEffect(() => {
                     {getSortIcon("completedLevels")}
                   </IconButton>
                 </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                    textAlign: "center",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                <TableCell sx={{
+                  fontWeight: "600",
+                  backgroundColor: "#f8fafc",
+                  padding: "16px 32px",
+                  fontSize: "14px",
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  position: "relative",
+                  textAlign: "center",
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
                     <span>Name</span>
                   </Box>
                   <IconButton
@@ -825,25 +750,20 @@ useEffect(() => {
                     </Box>
                   </Popover>
                 </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                <TableCell sx={{
+                  fontWeight: "600",
+                  backgroundColor: "#f8fafc",
+                  padding: "16px 32px",
+                  fontSize: "14px",
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  position: "relative",
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
                     <span>Reg No</span>
                   </Box>
                   <IconButton
@@ -876,25 +796,20 @@ useEffect(() => {
                     </Box>
                   </Popover>
                 </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
+                <TableCell sx={{
+                  fontWeight: "600",
+                  backgroundColor: "#f8fafc",
+                  padding: "16px 32px",
+                  fontSize: "14px",
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  position: "relative",
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}>
                     <span>Cumulative</span>
                     <span>Rewards</span>
                   </Box>
@@ -968,25 +883,20 @@ useEffect(() => {
                     </Box>
                   </Popover>
                 </TableCell>
-
-                <TableCell
-                  sx={{
-                    fontWeight: "600",
-                    backgroundColor: "#f8fafc",
-                    padding: "16px 32px",
-                    fontSize: "14px",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
+                <TableCell sx={{
+                  fontWeight: "600",
+                  backgroundColor: "#f8fafc",
+                  padding: "16px 32px",
+                  fontSize: "14px",
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  position: "relative",
+                }}>
+                  <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}>
                     <span>Current Sem</span>
                     <span>Rewards</span>
                   </Box>
@@ -1060,7 +970,6 @@ useEffect(() => {
                     </Box>
                   </Popover>
                 </TableCell>
-
                 {skillColumns.map((skillCol) => (
                   <TableCell
                     key={skillCol.id}
@@ -1137,7 +1046,6 @@ useEffect(() => {
                 ))}
               </tr>
             </thead>
-
             <tbody style={styles.tbody}>
               {sortedStudents.map((student) => (
                 <tr
@@ -1175,11 +1083,9 @@ useEffect(() => {
                       {student.completedLevels}
                     </span>
                   </td>
-
                   <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
                     <div style={styles.nameMain}>{student.name}</div>
                   </td>
-
                   <td style={{ ...styles.td, textAlign: "left" }}>{student.regNo}</td>
                   <td style={{ ...styles.td, ...styles.rewardPoints }}>
                     {student.cumulativeRewards}
@@ -1193,7 +1099,6 @@ useEffect(() => {
                   >
                     {student.currentSemRewards}
                   </td>
-
                   {skillColumns.map((skillCol) => {
                     const skillData =
                       student.skills && student.skills[skillCol.skill];
@@ -1206,7 +1111,6 @@ useEffect(() => {
                           -
                         </td>
                       );
-
                     return (
                       <td key={skillCol.id} style={styles.td}>
                         <div style={styles.skillCell}>
