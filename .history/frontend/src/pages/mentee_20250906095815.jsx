@@ -401,7 +401,7 @@ const MenteeDashboard = () => {
       fontSize: "14px",
       fontWeight: "600",
       color: "#3b82f6",
-      marginTop: "1px"
+      margin
     },
     skillCell: {
       display: "flex",
