@@ -409,7 +409,7 @@ const MenteeDashboard = () => {
       alignItems: "center",
       width: "100%",
       gap: "12px",
-      marginTop: "1px",
+      marginTop: "1"
     },
     skillLevelText: {
       fontSize: "14px",
