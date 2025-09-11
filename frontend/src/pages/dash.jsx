@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
+import TotalLevelsModal from "../Modal/Total";
+import CompletedLevelsModal from "../Modal/Completed";
 import {
   Search,
   Plus,
@@ -95,6 +97,8 @@ const Dash = () => {
   });
   const [nameAnchorEl, setNameAnchorEl] = useState(null);
   const [regNoAnchorEl, setRegNoAnchorEl] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
   // --- Fetch students from API ---
   useEffect(() => {
@@ -110,7 +114,7 @@ const Dash = () => {
             department: deptMap[student.dept] || "CSE",
             year: yearMap[student.year] || "I",
             completedLevels: student.completedLevels ?? Math.floor(Math.random() * 10) + 1,
-            totalLevels: student.totalLevels ?? Math.floor(Math.random() * 12) + 10,
+            totalLevels: student.course_total_levels ?? student.totalLevels ?? 0,
             cumulativeRewards: student.cumulativeRewards ?? Math.floor(Math.random() * 100) + 1,
             currentSemRewards: student.currentSemRewards ?? Math.floor(Math.random() * 50) + 1,
             skills: (() => {
@@ -400,15 +404,11 @@ const Dash = () => {
 
   const styles = {
     container: {
-      minHeight: "100vh",
       width: "100%",
       backgroundColor: "#f6f7fb",
       fontFamily:
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      display: "flex",
-      flexDirection: "column",
-      position: "relative",
-      top: "-30px",
+      display: "block", // revert to block layout
     },
     header: {
       padding: "20px 35px",
@@ -452,11 +452,10 @@ const Dash = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       border: "1px solid #e2e8f0",
-      overflow: "hidden",
+      overflow: "hidden", // revert to hidden
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      margin: "24px auto",
+      margin: "24px auto 0",
       width: "97.5%",
-      flex: "1",
     },
     tableWrapper: {
       overflowX: "auto",
@@ -504,6 +503,7 @@ const Dash = () => {
       fontSize: "14px",
       fontWeight: "600",
       color: "#3b82f6",
+      textAlign: "center",
     },
     skillCell: {
       display: "flex",
@@ -1073,15 +1073,74 @@ const Dash = () => {
                   }}
                 >
                   <td style={{ ...styles.td, padding: "16px 24px" }}>
-                    {student.totalLevels}
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        width: 60,
+                        height: 36,
+                        minWidth: 60,
+                        minHeight: 36,
+                        borderRadius: 2,
+                        borderColor: '#c7d2fe',
+                        background: '#f1f5ff',
+                        color: '#3b4cca',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        px: 0,
+                        py: 0,
+                        cursor: 'pointer',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          background: '#e0e7ff',
+                          borderColor: '#a5b4fc',
+                          boxShadow: 'none',
+                        },
+                      }}
+                      onClick={() => setIsModalOpen(true)}
+                      disableElevation
+                    >
+                      {student.totalLevels}
+                    </Button>
                   </td>
                   <td style={styles.td}>
-                    <span
-                      style={styles.completedBadge}
-                      className="completed-badge-hover"
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        width: 60,
+                        height: 36,
+                        minWidth: 60,
+                        minHeight: 36,
+                        borderRadius: 2,
+                        borderColor: '#c7d2fe',
+                        background: '#f1f5ff',
+                        color: '#3b4cca',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        px: 0,
+                        py: 0,
+                        cursor: 'pointer',
+                        boxShadow: 'none',
+                        width: 60,
+                        height: 36,
+                        '&:hover': {
+                          background: '#e0e7ff',
+                          borderColor: '#a5b4fc',
+                          boxShadow: 'none',
+                        },
+                      }}
+                      onClick={() => setIsCompletedModalOpen(true)}
+                      disableElevation
                     >
                       {student.completedLevels}
-                    </span>
+                    </Button>
                   </td>
                   <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
                     <div style={styles.nameMain}>{student.name}</div>
@@ -1149,6 +1208,16 @@ const Dash = () => {
           </table>
         </div>
       </div>
+      
+      <TotalLevelsModal 
+        open={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+      
+      <CompletedLevelsModal 
+        open={isCompletedModalOpen} 
+        onClose={() => setIsCompletedModalOpen(false)} 
+      />
     </div>
   );
 };
