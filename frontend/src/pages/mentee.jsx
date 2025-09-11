@@ -1,10 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
-import {
-  ChevronDown,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
+import TotalLevelsModal from "../Modal/Total";
+import CompletedLevelsModal from "../Modal/Completed";
+import { ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   TableCell,
   Box,
@@ -34,7 +32,7 @@ const availableSkills = [
   "Node.js",
   "Angular",
   "Vue.js",
-  "Networking"
+  "Networking",
 ];
 const deptMap = { 1: "CSE", 2: "IT", 3: "ECE", 4: "EEE", 5: "MECH" };
 const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
@@ -80,48 +78,55 @@ const MenteeDashboard = () => {
   });
   const [nameAnchorEl, setNameAnchorEl] = useState(null);
   const [regNoAnchorEl, setRegNoAnchorEl] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
   // Fetch mentees from API
   useEffect(() => {
     const fetchMentees = async () => {
       try {
-        const relRes = await axios.get("http://localhost:3000/student_faculty/get_relations");
-        const facultyRelation = relRes.data && relRes.data[0];
-        if (!facultyRelation || !facultyRelation.students) {
-          setMentees([]);
-          return;
-        }
-        // For demo, fill in dummy data for skills and rewards
-        const menteesList = facultyRelation.students.map((stud, idx) => ({
-          id: stud.student,
-          name: stud.student_reg_num, // Replace with name if you have a mapping
-          regNo: stud.student_reg_num,
-          department: deptMap[facultyRelation.faculty_dept] || "CSE",
-          year: "III", // Replace with real year if available
-          totalLevels: 10 + idx,
-          completedLevels: 5 + idx,
-          cumulativeRewards: 800 + 100 * idx,
-          currentSemRewards: 120 + 20 * idx,
-          skills: {
+        const response = await axios.get(
+          "http://localhost:3000/student/get_all_users"
+        );
+        const studentsData = response.data || [];
+
+        // Transform API data to match the expected format
+        const menteesList = studentsData.map((student, idx) => ({
+          id: student.id || student.student_id || idx,
+          name: student.name || student.student_name || `Student ${idx + 1}`,
+          regNo:
+            student.reg_no ||
+            student.registration_number ||
+            `REG${String(idx + 1).padStart(3, "0")}`,
+          department: student.department || "CSE",
+          year: student.year || "III",
+          totalLevels: student.course_total_levels ?? student.totalLevels ?? 0,
+          completedLevels:
+            student.completedLevels ?? Math.floor(Math.random() * 10) + 1,
+          cumulativeRewards: student.cumulativeRewards ?? 800 + 100 * idx,
+          currentSemRewards: student.currentSemRewards ?? 120 + 20 * idx,
+          skills: student.skills || {
             JavaScript: { level: 4 + idx, daysAgo: 3 + idx },
             Python: { level: 3 + idx, daysAgo: 6 + idx },
-            React: { level: 5 + idx, daysAgo: 2 * idx }
-          }
+            React: { level: 5 + idx, daysAgo: 2 * idx },
+          },
         }));
         setMentees(menteesList);
       } catch (err) {
+        console.error("Error fetching mentees:", err);
         setMentees([]);
         setSnackbar({
           open: true,
           message: "Failed to load mentees",
-          severity: "error"
+          severity: "error",
         });
       }
     };
     fetchMentees();
   }, []);
 
-  const handleCumulativeOpen = (event) => setCumulativeAnchorEl(event.currentTarget);
+  const handleCumulativeOpen = (event) =>
+    setCumulativeAnchorEl(event.currentTarget);
   const handleCumulativeClose = () => setCumulativeAnchorEl(null);
   const handleCumulativeApply = () => {
     setCumulativeFilter({
@@ -135,7 +140,8 @@ const MenteeDashboard = () => {
     setCumulativeFilter({ type: "all", value: "" });
     handleCumulativeClose();
   };
-  const handleCurrentSemOpen = (event) => setCurrentSemAnchorEl(event.currentTarget);
+  const handleCurrentSemOpen = (event) =>
+    setCurrentSemAnchorEl(event.currentTarget);
   const handleCurrentSemClose = () => setCurrentSemAnchorEl(null);
   const handleCurrentSemApply = () => {
     setCurrentSemFilter({
@@ -153,7 +159,8 @@ const MenteeDashboard = () => {
   const handleNameClose = () => setNameAnchorEl(null);
   const handleRegNoOpen = (event) => setRegNoAnchorEl(event.currentTarget);
   const handleRegNoClose = () => setRegNoAnchorEl(null);
-  const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
+  const handleSnackbarClose = () =>
+    setSnackbar((prev) => ({ ...prev, open: false }));
 
   // ... Filter, sort, and style helpers as in previous code ...
   const getDaysColor = (days) => {
@@ -168,28 +175,55 @@ const MenteeDashboard = () => {
       if (!mentee || !mentee.skills) return false;
       if (filters.role !== "all" && filters.role !== "mentee") return false;
       if (filters.year !== "all" && mentee.year !== filters.year) return false;
-      if (filters.department !== "all" && mentee.department !== filters.department)
+      if (
+        filters.department !== "all" &&
+        mentee.department !== filters.department
+      )
         return false;
-      if (nameSearch && !mentee.name.toLowerCase().includes(nameSearch.toLowerCase()))
+      if (
+        nameSearch &&
+        !mentee.name.toLowerCase().includes(nameSearch.toLowerCase())
+      )
         return false;
-      if (regNoSearch && !mentee.regNo.toLowerCase().includes(regNoSearch.toLowerCase()))
+      if (
+        regNoSearch &&
+        !mentee.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
+      )
         return false;
       if (cumulativeFilter.type !== "all" && cumulativeFilter.value) {
         const value = parseInt(cumulativeFilter.value);
-        if (cumulativeFilter.type === "equal" && mentee.cumulativeRewards !== value)
+        if (
+          cumulativeFilter.type === "equal" &&
+          mentee.cumulativeRewards !== value
+        )
           return false;
-        if (cumulativeFilter.type === "greater" && mentee.cumulativeRewards <= value)
+        if (
+          cumulativeFilter.type === "greater" &&
+          mentee.cumulativeRewards <= value
+        )
           return false;
-        if (cumulativeFilter.type === "less" && mentee.cumulativeRewards >= value)
+        if (
+          cumulativeFilter.type === "less" &&
+          mentee.cumulativeRewards >= value
+        )
           return false;
       }
       if (currentSemFilter.type !== "all" && currentSemFilter.value) {
         const value = parseInt(currentSemFilter.value);
-        if (currentSemFilter.type === "equal" && mentee.currentSemRewards !== value)
+        if (
+          currentSemFilter.type === "equal" &&
+          mentee.currentSemRewards !== value
+        )
           return false;
-        if (currentSemFilter.type === "greater" && mentee.currentSemRewards <= value)
+        if (
+          currentSemFilter.type === "greater" &&
+          mentee.currentSemRewards <= value
+        )
           return false;
-        if (currentSemFilter.type === "less" && mentee.currentSemRewards >= value)
+        if (
+          currentSemFilter.type === "less" &&
+          mentee.currentSemRewards >= value
+        )
           return false;
       }
       for (const skillCol of skillColumns) {
@@ -217,15 +251,20 @@ const MenteeDashboard = () => {
     return [...filteredMentees].sort((a, b) => {
       let aVal, bVal;
       if (sortConfig.key === "completedLevels") {
-        aVal = a.completedLevels; bVal = b.completedLevels;
+        aVal = a.completedLevels;
+        bVal = b.completedLevels;
       } else if (sortConfig.key === "name") {
-        aVal = a.name.toLowerCase(); bVal = b.name.toLowerCase();
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
       } else if (sortConfig.key === "regNo") {
-        aVal = a.regNo.toLowerCase(); bVal = b.regNo.toLowerCase();
+        aVal = a.regNo.toLowerCase();
+        bVal = b.regNo.toLowerCase();
       } else if (sortConfig.key === "cumulativeRewards") {
-        aVal = a.cumulativeRewards; bVal = b.cumulativeRewards;
+        aVal = a.cumulativeRewards;
+        bVal = b.cumulativeRewards;
       } else if (sortConfig.key === "currentSemRewards") {
-        aVal = a.currentSemRewards; bVal = b.currentSemRewards;
+        aVal = a.currentSemRewards;
+        bVal = b.currentSemRewards;
       } else if (sortConfig.key.startsWith("skill_")) {
         const skillId = sortConfig.key.replace("skill_", "");
         const skillCol = skillColumns.find((col) => col.id === skillId);
@@ -303,7 +342,8 @@ const MenteeDashboard = () => {
     container: {
       width: "100%",
       backgroundColor: "#f6f7fb",
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontFamily:
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       display: "flex",
       flexDirection: "column",
       height: "100%",
@@ -319,7 +359,7 @@ const MenteeDashboard = () => {
       fontWeight: "700",
       color: "#475569",
       margin: "0 0 8px 0",
-      marginTop: '11px',
+      marginTop: "11px",
       letterSpacing: "-0.025em",
       lineHeight: "1.1",
     },
@@ -445,7 +485,7 @@ const MenteeDashboard = () => {
           marginBottom: "-22px",
         }}
       >
-        <h3 style={styles.title}>Mentees Skill Dashboard</h3>
+        <h3 style={styles.title}>Mentees Skills Dashboard</h3>
       </div>
       <div style={styles.filtersContainer}>
         <div style={styles.filtersRow}>
@@ -550,30 +590,104 @@ const MenteeDashboard = () => {
           <table style={styles.table}>
             <thead style={styles.thead}>
               <tr>
-                <TableCell sx={{fontWeight: "600",backgroundColor: "#f8fafc",padding: "16px 24px",fontSize: "14px",color: "#475569",textTransform: "uppercase",width: "120px"}}>
-                  <Box sx={{display: "flex",alignItems: "center",justifyContent: "center",textAlign: "center"}}>
-                    <span>Total<br />Levels</span>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 24px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    width: "120px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span>
+                      Total
+                      <br />
+                      Levels
+                    </span>
                   </Box>
                 </TableCell>
-                <TableCell sx={{fontWeight: "600",backgroundColor: "#f8fafc",padding: "16px 32px",fontSize: "14px",color: "#475569",textTransform: "uppercase",position: "relative",}}>
-                  <Box sx={{display: "flex",alignItems: "center",justifyContent: "center"}}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <span>Completed</span>
                   </Box>
-                  <IconButton size="small" onClick={() => handleSort("completedLevels")}
-                    sx={{position: "absolute",top: "50%",right: "5px",transform: "translateY(-50%)",}}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleSort("completedLevels")}
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      right: "5px",
+                      transform: "translateY(-50%)",
+                    }}
+                  >
                     {getSortIcon("completedLevels")}
                   </IconButton>
                 </TableCell>
-                <TableCell sx={{fontWeight: "600",backgroundColor: "#f8fafc",padding: "16px 32px",fontSize: "14px",color: "#475569",textTransform: "uppercase",position: "relative",textAlign: "center",}}>
-                  <Box sx={{display: "flex",alignItems: "center",justifyContent: "center"}}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                    textAlign: "center",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <span>Name</span>
                   </Box>
-                  <IconButton size="small" onClick={handleNameOpen}
-                    sx={{position: "absolute",top: "50%",right: "5px",transform: "translateY(-50%)",}}>
+                  <IconButton
+                    size="small"
+                    onClick={handleNameOpen}
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      right: "5px",
+                      transform: "translateY(-50%)",
+                    }}
+                  >
                     <FilterListIcon sx={{ fontSize: "18px" }} />
                   </IconButton>
-                  <Popover open={Boolean(nameAnchorEl)} anchorEl={nameAnchorEl} onClose={handleNameClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
+                  <Popover
+                    open={Boolean(nameAnchorEl)}
+                    anchorEl={nameAnchorEl}
+                    onClose={handleNameClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                  >
                     <Box sx={{ p: 2 }}>
                       <TextField
                         placeholder="Search by name..."
@@ -586,16 +700,44 @@ const MenteeDashboard = () => {
                     </Box>
                   </Popover>
                 </TableCell>
-                <TableCell sx={{fontWeight: "600",backgroundColor: "#f8fafc",padding: "16px 32px",fontSize: "14px",color: "#475569",textTransform: "uppercase",position: "relative",}}>
-                  <Box sx={{display: "flex",alignItems: "center",justifyContent: "center"}}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <span>Reg No</span>
                   </Box>
-                  <IconButton size="small" onClick={handleRegNoOpen}
-                    sx={{position: "absolute",top: "50%",right: "5px",transform: "translateY(-50%)",}}>
+                  <IconButton
+                    size="small"
+                    onClick={handleRegNoOpen}
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      right: "5px",
+                      transform: "translateY(-50%)",
+                    }}
+                  >
                     <FilterListIcon sx={{ fontSize: "18px" }} />
                   </IconButton>
-                  <Popover open={Boolean(regNoAnchorEl)} anchorEl={regNoAnchorEl} onClose={handleRegNoClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
+                  <Popover
+                    open={Boolean(regNoAnchorEl)}
+                    anchorEl={regNoAnchorEl}
+                    onClose={handleRegNoClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                  >
                     <Box sx={{ p: 2 }}>
                       <TextField
                         placeholder="Search by registration number..."
@@ -608,55 +750,120 @@ const MenteeDashboard = () => {
                     </Box>
                   </Popover>
                 </TableCell>
-                <TableCell sx={{fontWeight: "600",backgroundColor: "#f8fafc",padding: "16px 32px",fontSize: "14px",color: "#475569",textTransform: "uppercase",position: "relative",}}>
-                  <Box sx={{display: "flex",flexDirection: "column",alignItems: "center",}}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
                     <span>Cumulative</span>
                     <span>Rewards</span>
                   </Box>
                 </TableCell>
-                <TableCell sx={{fontWeight: "600",backgroundColor: "#f8fafc",padding: "16px 32px",fontSize: "14px",color: "#475569",textTransform: "uppercase",position: "relative",}}>
-                  <Box sx={{display: "flex",flexDirection: "column",alignItems: "center",}}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
                     <span>Current Sem</span>
                     <span>Rewards</span>
                   </Box>
                 </TableCell>
                 {skillColumns.map((skillCol) => (
-                  <TableCell key={skillCol.id}
-                    sx={{fontWeight: "bold",backgroundColor: "#f8fafc",padding: "12px 16px",fontSize: "12px",minWidth: "220px",}}>
-                    <Box sx={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr auto",
-                      gridTemplateRows: "auto auto",
-                      gap: 1.5,
-                      alignItems: "center"
-                    }}>
+                  <TableCell
+                    key={skillCol.id}
+                    sx={{
+                      fontWeight: "bold",
+                      backgroundColor: "#f8fafc",
+                      padding: "12px 16px",
+                      fontSize: "12px",
+                      minWidth: "220px",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr auto",
+                        gridTemplateRows: "auto auto",
+                        gap: 1.5,
+                        alignItems: "center",
+                      }}
+                    >
                       <Select
                         value={skillCol.skill}
-                        onChange={e => updateSkillColumn(skillCol.id, "skill", e.target.value)}
+                        onChange={(e) =>
+                          updateSkillColumn(
+                            skillCol.id,
+                            "skill",
+                            e.target.value
+                          )
+                        }
                         displayEmpty
                         size="small"
                       >
-                        <MenuItem value="" disabled><em>Select Skill</em></MenuItem>
+                        <MenuItem value="" disabled>
+                          <em>Select Skill</em>
+                        </MenuItem>
                         {availableSkills.map((skill) => (
                           <MenuItem key={skill} value={skill}>
                             {skill}
                           </MenuItem>
                         ))}
                       </Select>
-                      <IconButton onClick={() => removeSkillColumn(skillCol.id)} size="small">
+                      <IconButton
+                        onClick={() => removeSkillColumn(skillCol.id)}
+                        size="small"
+                      >
                         <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
                       <TextField
                         type="number"
                         placeholder="Level"
                         value={skillCol.levelFilter}
-                        onChange={e => updateSkillColumn(skillCol.id, "levelFilter", e.target.value)}
+                        onChange={(e) =>
+                          updateSkillColumn(
+                            skillCol.id,
+                            "levelFilter",
+                            e.target.value
+                          )
+                        }
                         size="small"
                       />
-                      <IconButton onClick={() => handleSort(`skill_${skillCol.id}`)} size="small">
-                        {sortConfig.key === `skill_${skillCol.id}` && sortConfig.direction === "desc"
-                          ? (<ArrowDownwardIcon fontSize="small" />)
-                          : (<ArrowUpwardIcon fontSize="small" />)}
+                      <IconButton
+                        onClick={() => handleSort(`skill_${skillCol.id}`)}
+                        size="small"
+                      >
+                        {sortConfig.key === `skill_${skillCol.id}` &&
+                        sortConfig.direction === "desc" ? (
+                          <ArrowDownwardIcon fontSize="small" />
+                        ) : (
+                          <ArrowUpwardIcon fontSize="small" />
+                        )}
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -666,19 +873,108 @@ const MenteeDashboard = () => {
             <tbody style={styles.tbody}>
               {sortedMentees.map((mentee) => (
                 <tr key={mentee.id} style={styles.tr}>
-                  <td style={{ ...styles.td, padding: "16px 24px" }}>{mentee.totalLevels}</td>
-                  <td style={styles.td}><span style={styles.completedBadge} className="completed-badge-hover">{mentee.completedLevels}</span></td>
-                  <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
+                  <td style={styles.td}>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        width: 60,
+                        height: 36,
+                        minWidth: 60,
+                        minHeight: 36,
+                        borderRadius: 2,
+                        borderColor: "#c7d2fe",
+                        background: "#f1f5ff",
+                        color: "#3b4cca",
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        mx: "auto",
+                        px: 0,
+                        py: 0,
+                        cursor: "pointer",
+                        boxShadow: "none",
+                        "&:hover": {
+                          background: "#e0e7ff",
+                          borderColor: "#a5b4fc",
+                          boxShadow: "none",
+                        },
+                      }}
+                      onClick={() => setIsModalOpen(true)}
+                      disableElevation
+                    >
+                      {mentee.totalLevels}
+                    </Button>
+                  </td>
+                  <td style={styles.td}>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        width: 60,
+                        height: 36,
+                        minWidth: 60,
+                        minHeight: 36,
+                        borderRadius: 2,
+                        borderColor: "#c7d2fe",
+                        background: "#f1f5ff",
+                        color: "#3b4cca",
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        mx: "auto",
+                        px: 0,
+                        py: 0,
+                        cursor: "pointer",
+                        boxShadow: "none",
+                        "&:hover": {
+                          background: "#e0e7ff",
+                          borderColor: "#a5b4fc",
+                          boxShadow: "none",
+                        },
+                      }}
+                      onClick={() => setIsCompletedModalOpen(true)}
+                      disableElevation
+                    >
+                      {mentee.completedLevels}
+                    </Button>
+                  </td>
+                  <td
+                    style={{
+                      ...styles.td,
+                      whiteSpace: "nowrap",
+                      textAlign: "left",
+                    }}
+                  >
                     <div style={styles.nameMain}>{mentee.name}</div>
                   </td>
-                  <td style={{ ...styles.td, textAlign: "left" }}>{mentee.regNo}</td>
-                  <td style={{ ...styles.td, ...styles.rewardPoints }}>{mentee.cumulativeRewards}</td>
-                  <td style={{ ...styles.td, ...styles.rewardPoints, minWidth: "200px" }}>{mentee.currentSemRewards}</td>
-                  {skillColumns.map(skillCol => {
-                    const skillData = mentee.skills && mentee.skills[skillCol.skill];
+                  <td style={{ ...styles.td, textAlign: "left" }}>
+                    {mentee.regNo}
+                  </td>
+                  <td style={{ ...styles.td, ...styles.rewardPoints, textAlign: "center" }}>
+                    {mentee.cumulativeRewards}
+                  </td>
+                  <td
+                    style={{
+                      ...styles.td,
+                      ...styles.rewardPoints,
+                      minWidth: "200px",
+                      textAlign: "center",
+                    }}
+                  >
+                    {mentee.currentSemRewards}
+                  </td>
+                  {skillColumns.map((skillCol) => {
+                    const skillData =
+                      mentee.skills && mentee.skills[skillCol.skill];
                     if (!skillData)
                       return (
-                        <td key={skillCol.id} style={{ ...styles.td, color: "#9ca3af" }}>
+                        <td
+                          key={skillCol.id}
+                          style={{ ...styles.td, color: "#9ca3af" }}
+                        >
                           -
                         </td>
                       );
@@ -691,7 +987,8 @@ const MenteeDashboard = () => {
                           <span
                             style={{
                               ...styles.daysAgo,
-                              backgroundColor: getDaysColor(skillData.daysAgo).bg,
+                              backgroundColor: getDaysColor(skillData.daysAgo)
+                                .bg,
                               color: getDaysColor(skillData.daysAgo).text,
                               padding: "4px 8px",
                               borderRadius: "12px",
@@ -716,6 +1013,16 @@ const MenteeDashboard = () => {
           </table>
         </div>
       </div>
+
+      <TotalLevelsModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
+      <CompletedLevelsModal
+        open={isCompletedModalOpen}
+        onClose={() => setIsCompletedModalOpen(false)}
+      />
     </div>
   );
 };
