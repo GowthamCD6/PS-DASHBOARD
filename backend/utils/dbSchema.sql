@@ -10,6 +10,7 @@ CREATE TABLE master_user (
     user_id VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(300) NOT NULL,
     dept INT NOT NULL,
     year INT NOT NULL,
     type ENUM('student', 'teacher') NOT NULL,

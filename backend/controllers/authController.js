@@ -6,13 +6,13 @@ const cookieParser = require("cookie-parser");
 
 exports.login = (req, res, next) => {
     try{
-        const {email} = req.body;
-        if(!email.trim()) {
+        const {email,password} = req.body;
+        if(!email.trim() || !password.trim()) {
          return createError(BadRequest, "EmailId or Password is missing!");
         }
         const sql = `select t1.id, t1.user_id, t1.name, t1.type, t2.name from master_user t1 join master_role t2
-                     on t1.role = t2.id where t1.email = ?;`;       
-        const values = [email];
+                     on t1.role = t2.id where t1.email = ? and password = ?;`;       
+        const values = [email,password];
         db.query(sql,values,(error,result) => {
             if(error) {
                 return next(error)
