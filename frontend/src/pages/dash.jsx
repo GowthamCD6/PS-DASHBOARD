@@ -104,12 +104,12 @@ const Dash = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/student/get_all_users");
+        const response = await axios.get("http://localhost:3000/student/get_all_users",{withCredentials: true});
         if (Array.isArray(response.data)) {
           // Map response to UI fields and fill missing fields with dummy data
           const transformed = response.data.map((student, idx) => ({
             id: student.user_id || idx,
-            name: student.name || "Unknown Name",
+            name: student.name || "Unknown Name",withCredentials: true,
             regNo: student.user_id || `REG${idx + 1}`,
             department: deptMap[student.dept] || "CSE",
             year: yearMap[student.year] || "I",
@@ -135,6 +135,7 @@ const Dash = () => {
           throw new Error("API response is not an array");
         }
       } catch (error) {
+        console.log(error)
         setSnackbar({
           open: true,
           message: "Error fetching students from API",

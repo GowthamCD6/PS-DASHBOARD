@@ -18,12 +18,16 @@ exports.login = (req, res, next) => {
                 return next(error)
             }
             if(result.length === 0){
-                return createError(Unauthorized, "Invalid emailId or password");
+                return createError("Invalid emailId or password");
             }
             const user = result[0];
             const token = jwt.sign({id: user.id},process.env.JWT_SECRET,{expiresIn: "1h"});
-            res.cookie("token", token); 
-            res.json({
+            res.cookie("token", token, {
+                httpOnly: true,     // cannot be accessed from JS (more secure)
+                secure: false,      // true if using HTTPS in production
+                sameSite: "None",    // if backend/frontend same domain → use Lax; if different ports → set "None"
+            });
+                    res.json({
                 message: "login successful",
                 "user_id":user.user_id,
                 "user_name":user.name,

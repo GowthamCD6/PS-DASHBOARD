@@ -9,7 +9,7 @@ const userAuth = (req,res,next) => {
     }
     try{
        const decodedMessage = jwt.verify(token, process.env.JWT_SECRET);
-        db.query("select * from users where id = ?",[decodedMessage.id],(error,result) => {
+        db.query("select * from master_user where id = ?",[decodedMessage.id],(error,result) => {
             if(error)return next(createError.BadRequest(error));
             if(result.length === 0){
                 return next(createError.NotFound());

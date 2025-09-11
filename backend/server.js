@@ -12,7 +12,7 @@ const getRoute = require("./routes/getRoute");
 const postRoute = require("./routes/postRoute");
 
 app.use(cors({
-        origin: "http://localhost:5173", // Vite's default port
+        origin: "http://localhost:5173" || "http://localhost:5174" || "http://localhost:5175", // Vite's default port
         credentials: true, // accepts cookie's from frontend
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
         allowedHeaders: ["Content-Type", "Authorization"]

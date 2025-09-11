@@ -85,7 +85,7 @@ exports.get_all_users = (req, res, next) => {
       JSON_ARRAYAGG(
         JSON_OBJECT(
           'course_id', c.id,
-          'course_name', c.name,
+          'course_nam e', c.name,
           'course_total_levels', c.level_order,
           'course_completed_levels', IFNULL(sr.completed_count,0),
           'last_attempt_date', sr.last_attempt_date,
