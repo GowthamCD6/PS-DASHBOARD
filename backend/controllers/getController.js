@@ -73,54 +73,54 @@ GROUP BY u.user_id, u.name, u.email, u.dept, dept_table.dept, u.year, u.type, u.
 exports.get_all_users = (req, res, next) => {
   try {
     let sql = `SELECT
-    u.user_id,
-    u.name,
-    u.email,
-    d.dept AS dept,
-    u.year,
-    u.type,
-    r.name AS role,
-    SUM(c.level_order) AS total_levels,
-    SUM(IF(sr.status = 1, 1, 0)) AS total_completed_levels,
-    JSON_ARRAYAGG(
+      u.user_id,
+      u.name,
+      u.email,
+      d.dept AS dept,
+      u.year,
+      u.type,
+      r.name AS role,
+      SUM(c.level_order) AS total_levels,
+      SUM(IFNULL(sr.completed_count, 0)) AS total_completed_levels,
+      JSON_ARRAYAGG(
         JSON_OBJECT(
-            'course_id', c.id,
-            'course_name', c.name,
-            'course_total_levels', c.level_order,
-            'course_completed_levels', IFNULL(sr.completed_count,0),
-            'last_attempt_date', sr.last_attempt_date,
-            'gap_days', IFNULL(DATEDIFF(CURDATE(), sr.last_attempt_date),0)
+          'course_id', c.id,
+          'course_name', c.name,
+          'course_total_levels', c.level_order,
+          'course_completed_levels', IFNULL(sr.completed_count,0),
+          'last_attempt_date', sr.last_attempt_date,
+          'gap_days', IFNULL(DATEDIFF(CURDATE(), sr.last_attempt_date),0)
         )
-    ) AS courses
-FROM master_user u
-JOIN master_role r ON r.id = u.role
-JOIN master_dept d ON d.id = u.dept
-CROSS JOIN master_course c
-LEFT JOIN (
-    SELECT
+      ) AS courses
+    FROM master_user u
+    JOIN master_role r ON r.id = u.role
+    JOIN master_dept d ON d.id = u.dept
+    CROSS JOIN master_course c
+    LEFT JOIN (
+      SELECT
         sr.user_id,
         sr.skill_id,
         SUM(CASE WHEN sr.status = 1 THEN 1 ELSE 0 END) AS completed_count,
         MAX(s.date) AS last_attempt_date
-    FROM s_register sr
-    LEFT JOIN s_slot s ON s.id = sr.slot_id
-    GROUP BY sr.user_id, sr.skill_id
-) sr ON sr.user_id = u.id AND sr.skill_id = c.id
-GROUP BY u.id, u.user_id, u.name, u.email, d.dept, u.year, u.type, r.name
-ORDER BY u.user_id;
-
-`;
+      FROM s_register sr
+      LEFT JOIN s_slot s ON s.id = sr.slot_id
+      GROUP BY sr.user_id, sr.skill_id
+    ) sr ON sr.user_id = u.id AND sr.skill_id = c.id
+    WHERE u.type = 'student'
+    GROUP BY u.id, u.user_id, u.name, u.email, d.dept, u.year, u.type, r.name
+    ORDER BY u.user_id;`;
 
     db.query(sql, [], (err, results) => {
       if (err) {
-        return next(err); // pass error to Express error handler
+        return next(err);
       }
-      res.status(200).json(results); // send the query results as JSON
+      res.status(200).json(results);
     });
   } catch (error) {
     next(error);
   }
 };
+
 
 
 exports.get_relations = (req, res, next) => {
