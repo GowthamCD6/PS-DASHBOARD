@@ -89,4 +89,9 @@ CREATE TABLE master_relationships (
     relationship VARCHAR(50) NOT NULL UNIQUE
 );
 
+CREATE TABLE master_dept(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    dept varchar(50) unique
+)
+
 
