@@ -85,8 +85,9 @@ const MenteeDashboard = () => {
   useEffect(() => {
     const fetchMentees = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/student/get_all_users"
+        const response = await axios.get("http://localhost:3000/student_faculty/get_relations",{
+          withCredentials:true
+        }
         );
         const studentsData = response.data || [];
 

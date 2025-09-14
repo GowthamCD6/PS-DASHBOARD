@@ -24,6 +24,7 @@ app.use(cookieParser())
 app.use('/',authRoute);
 app.use('/',getRoute);
 app.use('/',postRoute);
+app.use("/api/auth", authRoute);
 
 
 app.use((req,res,next) => {

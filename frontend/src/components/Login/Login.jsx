@@ -60,12 +60,14 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, password: formData.password }),
+        credentials:"include"
       });
 
       const data = await parseJSONSafe(resp);
 
-      if (resp.ok && data.success) {
+      if (resp.status == 200) {
         navigate("/dashboard");
+        console.log('hi')
       } else {
         setLoginError(data.message || "Login failed");
       }

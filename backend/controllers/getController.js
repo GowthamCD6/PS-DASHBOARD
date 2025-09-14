@@ -127,26 +127,31 @@ exports.get_relations = (req, res, next) => {
   try {
     let sql = `
       SELECT 
-        faculty_user.name AS faculty,
-        faculty_user.id AS faculty_id,
-        faculty_user.user_id AS faculty_reg_num,
-        faculty_user.email AS faculty_email,
-        faculty_dept_table.dept AS faculty_dept,   -- ✅ faculty dept name
-        mapping.relationship,
-        mapping.relation_user AS student,
-        student_user.user_id AS student_reg_num,
-        student_user.email AS student_email,
-        student_dept_table.dept AS student_dept    -- ✅ student dept name
-      FROM master_relationship_mapping mapping
-      JOIN master_user faculty_user 
-        ON faculty_user.id = mapping.user
-      JOIN master_user student_user 
-        ON student_user.id = mapping.relation_user
-      JOIN master_dept faculty_dept_table 
-        ON faculty_user.dept = faculty_dept_table.id
-      JOIN master_dept student_dept_table 
-        ON student_user.dept = student_dept_table.id
-      WHERE mapping.user <> mapping.relation_user;
+    faculty_user.name AS faculty,
+    faculty_user.id AS faculty_id,
+    faculty_user.user_id AS faculty_reg_num,
+    faculty_user.email AS faculty_email,
+    faculty_dept_table.dept AS faculty_dept,
+    
+    mapping.relationship,
+    
+    student_user.name AS student_name,
+    student_user.id AS student_id,
+    student_user.user_id AS student_reg_num,
+    student_user.email AS student_email,
+    student_dept_table.dept AS student_dept
+
+FROM master_relationship_mapping mapping
+JOIN master_user faculty_user 
+    ON faculty_user.id = mapping.user
+JOIN master_user student_user 
+    ON student_user.id = mapping.relation_user
+JOIN master_dept faculty_dept_table 
+    ON faculty_user.dept = faculty_dept_table.id
+JOIN master_dept student_dept_table 
+    ON student_user.dept = student_dept_table.id
+WHERE mapping.user <> mapping.relation_user;
+
     `;
 
     db.query(sql, (error, result) => {
