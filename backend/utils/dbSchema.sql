@@ -95,4 +95,18 @@ CREATE TABLE master_dept(
     dept varchar(50) unique
 )
 
+CREATE TABLE master_rp (
+    id INT AUTO_INCREMENT PRIMARY KEY, 
+    user_id INT NOT NULL,             
+    activity_code VARCHAR(30),
+    date DATE,
+    activity_category VARCHAR(300),
+    activity_name VARCHAR(300),
+    organizer VARCHAR(300),
+    points INT,
+    status TINYINT NOT NULL CHECK (status IN (0,1)), 
+    FOREIGN KEY (user_id) REFERENCES master_user(id)
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE
+);
 
