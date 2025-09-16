@@ -1129,8 +1129,6 @@ const Dash = () => {
                         py: 0,
                         cursor: 'pointer',
                         boxShadow: 'none',
-                        width: 60,
-                        height: 36,
                         '&:hover': {
                           background: '#e0e7ff',
                           borderColor: '#a5b4fc',
