@@ -122,11 +122,12 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
         sx: {
           borderRadius: 3,
           maxHeight: '90vh',
-          width: '1100px',
-          maxWidth: '1100px'
+          width: '1050px',
+          maxWidth: '1050px'
         }
       }}
     >
+      {/* Header */}
       <DialogTitle sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -168,6 +169,7 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
         </IconButton>
       </DialogTitle>
       
+      {/* Content */}
       <DialogContent sx={{ p: 4, pt: 2, pb: 3, backgroundColor: '#fafbfc' }}>
         {completedSkills.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -193,48 +195,51 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
             </Typography>
           </Box>
         ) : (
-          <Grid container spacing={3} sx={{ 
-            justifyContent: 'flex-start',
-            mt: 0
-          }}>
-            {completedSkills.map((skill) => (
-              <Grid item xs={4} key={skill.id} sx={{ display: 'flex' }}>
-                <Card 
-                  sx={{ 
-                    height: '240px',
-                    width: '100%',
-                    flex: 1,
-                    borderRadius: 4,
-                    border: '2px solid #f1f5f9',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                      borderColor: '#e2e8f0',
-                      '& .skill-icon': {
-                        transform: 'scale(1.1)',
-                      }
-                    },
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: '4px',
-                      background: skill.progress === 100 
-                        ? 'linear-gradient(90deg, #10B981, #059669)' 
-                        : `linear-gradient(90deg, ${skill.color}, ${skill.color}CC)`,
-                    }
-                  }}
+          <Grid 
+            container 
+            spacing={3} 
+            justifyContent="center"
+          >
+              {completedSkills.map((skill) => (
+                <Grid 
+                  item 
+                  key={skill.id} 
+                  sx={{ display: 'flex', justifyContent: 'center' }}
                 >
-                  <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <Card 
+                    sx={{ 
+                      width: 260,
+                      height: 240,
+                      borderRadius: 4,
+                      border: '2px solid #f1f5f9',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      position: 'relative',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                        borderColor: '#e2e8f0',
+                        '& .skill-icon': {
+                          transform: 'scale(1.1)',
+                        }
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '4px',
+                        background: skill.progress === 100 
+                          ? 'linear-gradient(90deg, #10B981, #059669)' 
+                          : `linear-gradient(90deg, ${skill.color}, ${skill.color}CC)`,
+                      }
+                    }}
+                  >
+                  <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
                     {/* Skill Header */}
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Box 
@@ -393,6 +398,7 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
         )}
       </DialogContent>
       
+      {/* Footer */}
       <DialogActions sx={{ 
         p: 4, 
         pt: 2, 
