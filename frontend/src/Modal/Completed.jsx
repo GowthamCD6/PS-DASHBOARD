@@ -122,69 +122,159 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
         sx: {
           borderRadius: 3,
           maxHeight: '90vh',
-          width: '800px',
-          maxWidth: '800px'
+          width: '1050px',
+          maxWidth: '1050px'
         }
       }}
     >
+      {/* Header */}
       <DialogTitle sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
+        p: 3,
         pb: 2,
-        borderBottom: '1px solid #E5E7EB'
+        background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
+        borderBottom: '2px solid #e2e8f0'
       }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, color: '#1F2937' }}>
-          Completed Skills & Progress
-        </Typography>
-        <IconButton onClick={onClose} size="small">
+        <Box>
+          <Typography variant="h4" sx={{ 
+            fontWeight: 800, 
+            color: '#0f172a',
+            letterSpacing: '-0.025em',
+            mb: 0.5
+          }}>
+            Skills & Progress
+          </Typography>
+          <Typography variant="subtitle1" sx={{ 
+            color: '#64748b', 
+            fontWeight: 500
+          }}>
+            Track your learning journey and achievements
+          </Typography>
+        </Box>
+        <IconButton 
+          onClick={onClose} 
+          size="large"
+          sx={{
+            backgroundColor: '#f1f5f9',
+            border: '2px solid #e2e8f0',
+            '&:hover': {
+              backgroundColor: '#e2e8f0',
+              transform: 'scale(1.05)'
+            }
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       
-      <DialogContent sx={{ p: 2 }}>
+      {/* Content */}
+      <DialogContent sx={{ p: 4, pt: 2, pb: 3, backgroundColor: '#fafbfc' }}>
         {completedSkills.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h6" sx={{ color: '#6B7280', mb: 2 }}>
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Box sx={{ 
+              width: 120, 
+              height: 120, 
+              mx: 'auto', 
+              mb: 3,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '3rem'
+            }}>
+              📚
+            </Box>
+            <Typography variant="h5" sx={{ color: '#475569', mb: 2, fontWeight: 600 }}>
               No completed skills yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#9CA3AF' }}>
-              Start working on skills to see your progress here!
+            <Typography variant="body1" sx={{ color: '#64748b', maxWidth: 400, mx: 'auto' }}>
+              Start working on skills to see your progress and achievements here. Every step forward counts!
             </Typography>
           </Box>
         ) : (
-          <Grid container spacing={2}>
-            {completedSkills.map((skill) => (
-              <Grid item xs={6} key={skill.id}>
-                <Card 
-                  sx={{ 
-                    height: '180px',
-                    width: '100%',
-                    borderRadius: 2,
-                    border: '1px solid #E5E7EB',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    }
-                  }}
+          <Grid 
+            container 
+            spacing={3} 
+            justifyContent="center"
+          >
+              {completedSkills.map((skill) => (
+                <Grid 
+                  item 
+                  key={skill.id} 
+                  sx={{ display: 'flex', justifyContent: 'center' }}
                 >
-                  <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Card 
+                    sx={{ 
+                      width: 260,
+                      height: 240,
+                      borderRadius: 4,
+                      border: '2px solid #f1f5f9',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      position: 'relative',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                        borderColor: '#e2e8f0',
+                        '& .skill-icon': {
+                          transform: 'scale(1.1)',
+                        }
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '4px',
+                        background: skill.progress === 100 
+                          ? 'linear-gradient(90deg, #10B981, #059669)' 
+                          : `linear-gradient(90deg, ${skill.color}, ${skill.color}CC)`,
+                      }
+                    }}
+                  >
+                  <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
                     {/* Skill Header */}
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Box 
+                        className="skill-icon"
                         sx={{ 
                           fontSize: '2.5rem', 
-                          mr: 2,
-                          width: 50,
-                          height: 50,
+                          mr: 2.5,
+                          width: 64,
+                          height: 64,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          borderRadius: 2,
-                          backgroundColor: '#F8F9FA'
+                          borderRadius: '16px',
+                          background: skill.progress === 100 
+                            ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)'
+                            : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                          border: `2px solid ${skill.progress === 100 ? '#a7f3d0' : '#e2e8f0'}`,
+                          transition: 'all 0.3s ease',
+                          position: 'relative',
+                          '&::after': skill.progress === 100 ? {
+                            content: '"✓"',
+                            position: 'absolute',
+                            bottom: -2,
+                            right: -2,
+                            width: 18,
+                            height: 18,
+                            background: '#10B981',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            color: 'white',
+                            fontWeight: 'bold'
+                          } : {}
                         }}
                       >
                         {skill.image}
@@ -193,72 +283,112 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
                         <Typography 
                           variant="h6" 
                           sx={{ 
-                            fontWeight: 600, 
-                            fontSize: '0.9rem',
+                            fontWeight: 700, 
+                            fontSize: '1.1rem',
                             lineHeight: 1.2,
-                            color: '#1F2937',
-                            overflow: 'hidden',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical'
+                            color: '#1e293b',
+                            mb: 0.5,
+                            letterSpacing: '-0.025em'
                           }}
                         >
                           {skill.name}
                         </Typography>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: '#64748b',
+                            fontSize: '0.8rem',
+                            fontWeight: 500
+                          }}
+                        >
+                          {skill.completedLevels} of {skill.levels} levels completed
+                        </Typography>
                       </Box>
                     </Box>
 
-                    {/* Level and Difficulty Info */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                      <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
-                        📊 {skill.completedLevels}/{skill.levels} Levels
-                      </Typography>
+                    {/* Stats and Difficulty */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box 
+                          sx={{ 
+                            width: 8, 
+                            height: 8, 
+                            borderRadius: '50%', 
+                            backgroundColor: skill.progress === 100 ? '#10B981' : skill.color 
+                          }} 
+                        />
+                        <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>
+                          {skill.progress}% Complete
+                        </Typography>
+                      </Box>
                       <Chip 
                         label={skill.difficulty}
                         size="small"
                         sx={{ 
                           backgroundColor: getDifficultyColor(skill.difficulty),
                           color: 'white',
-                          fontSize: '0.7rem',
-                          height: 18,
-                          '& .MuiChip-label': { px: 0.5 }
+                          fontSize: '0.75rem',
+                          height: 24,
+                          fontWeight: 600,
+                          borderRadius: '12px',
+                          '& .MuiChip-label': { px: 1.5 }
                         }}
                       />
                     </Box>
 
-                    {/* Progress Bar */}
+                    {/* Progress Section */}
                     <Box sx={{ mt: 'auto' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="caption" sx={{ color: '#6B7280', fontSize: '0.75rem' }}>
-                          Progress: {skill.progress}%
-                        </Typography>
-                        {skill.progress === 100 && (
-                          <Chip 
-                            label="✓ Completed"
-                            size="small"
-                            sx={{ 
-                              backgroundColor: '#10B981',
-                              color: 'white',
-                              fontSize: '0.65rem',
-                              height: 16,
-                              '& .MuiChip-label': { px: 0.5 }
+                      {skill.progress === 100 && (
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          mb: 2,
+                          p: 1.5,
+                          backgroundColor: '#ecfdf5',
+                          borderRadius: 2,
+                          border: '1px solid #a7f3d0'
+                        }}>
+                          <Typography variant="body2" sx={{ 
+                            color: '#047857', 
+                            fontSize: '0.85rem', 
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5
+                          }}>
+                            🎉 Skill Mastered!
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      <Box sx={{ mb: 1.5 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', fontWeight: 600 }}>
+                            Progress
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#1e293b', fontSize: '0.8rem', fontWeight: 700 }}>
+                            {skill.progress}%
+                          </Typography>
+                        </Box>
+                        <Box sx={{ position: 'relative' }}>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={skill.progress} 
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: '#f1f5f9',
+                              '& .MuiLinearProgress-bar': {
+                                borderRadius: 4,
+                                background: skill.progress === 100 
+                                  ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
+                                  : `linear-gradient(90deg, ${skill.color} 0%, ${skill.color}DD 100%)`,
+                              }
                             }}
                           />
-                        )}
+                        </Box>
                       </Box>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={skill.progress} 
-                        sx={{
-                          height: 8,
-                          borderRadius: 4,
-                          backgroundColor: '#E5E7EB',
-                          '& .MuiLinearProgress-bar': {
-                            backgroundColor: skill.progress === 100 ? '#10B981' : skill.color,
-                            borderRadius: 4,
-                          }
-                        }}
-                      />
                     </Box>
                   </CardContent>
                 </Card>
@@ -268,14 +398,32 @@ const CompletedLevelsModal = ({ open, onClose, studentData }) => {
         )}
       </DialogContent>
       
-      <DialogActions sx={{ p: 2, pt: 1 }}>
+      {/* Footer */}
+      <DialogActions sx={{ 
+        p: 4, 
+        pt: 2, 
+        backgroundColor: '#f8fafc',
+        borderTop: '2px solid #e2e8f0',
+        justifyContent: 'center'
+      }}>
         <Button 
           onClick={onClose} 
           variant="contained"
+          size="large"
           sx={{ 
-            borderRadius: 2,
+            borderRadius: 3,
             textTransform: 'none',
-            px: 3
+            px: 4,
+            py: 1.5,
+            fontSize: '1rem',
+            fontWeight: 600,
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.3)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+              boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.4)',
+              transform: 'translateY(-1px)'
+            }
           }}
         >
           Close

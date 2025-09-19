@@ -470,7 +470,7 @@ const Dash = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       border: "1px solid #e2e8f0",
-      overflow: "hidden",
+      overflow: "hidden", 
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       margin: "24px auto 0",
       width: "97.5%",
@@ -1146,8 +1146,6 @@ const Dash = () => {
                         py: 0,
                         cursor: 'pointer',
                         boxShadow: 'none',
-                        width: 60,
-                        height: 36,
                         '&:hover': {
                           background: '#e0e7ff',
                           borderColor: '#a5b4fc',
