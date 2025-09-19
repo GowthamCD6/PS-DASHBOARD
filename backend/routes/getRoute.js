@@ -9,5 +9,6 @@ router.get("/student_faculty/get_relations",getController.get_relations);
 router.get("/getRoles",getController.getRoles);
 router.get("/getcourse",getController.getcourse);
 router.get("/getDept",getController.getDept);
+router.get("/getSkill",getController.getSkill);
 
 module.exports = router;

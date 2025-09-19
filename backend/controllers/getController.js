@@ -69,11 +69,11 @@ SELECT
         ) AS course_agg
     ) AS courses
 
-FROM master_user u
-JOIN master_relationship_mapping mrm ON mrm.relation_user = u.id
-JOIN master_dept d ON u.dept = d.id
-JOIN master_role r ON u.role = r.id
-WHERE mrm.user = ? AND mrm.status = '1';
+      FROM master_user u
+      JOIN master_relationship_mapping mrm ON mrm.relation_user = u.id
+      JOIN master_dept d ON u.dept = d.id
+      JOIN master_role r ON u.role = r.id
+      WHERE mrm.user = ? AND mrm.status = '1';
 `;
 
     db.query(sql, [semesterStart, id], (err, rows) => {
@@ -195,16 +195,16 @@ exports.get_relations = (req, res, next) => {
     student_user.email AS student_email,
     student_dept_table.dept AS student_dept
 
-FROM master_relationship_mapping mapping
-JOIN master_user faculty_user 
-    ON faculty_user.id = mapping.user
-JOIN master_user student_user 
-    ON student_user.id = mapping.relation_user
-JOIN master_dept faculty_dept_table 
-    ON faculty_user.dept = faculty_dept_table.id
-JOIN master_dept student_dept_table 
-    ON student_user.dept = student_dept_table.id
-WHERE mapping.user <> mapping.relation_user;
+    FROM master_relationship_mapping mapping
+    JOIN master_user faculty_user 
+        ON faculty_user.id = mapping.user
+    JOIN master_user student_user 
+        ON student_user.id = mapping.relation_user
+    JOIN master_dept faculty_dept_table 
+        ON faculty_user.dept = faculty_dept_table.id
+    JOIN master_dept student_dept_table 
+        ON student_user.dept = student_dept_table.id
+    WHERE mapping.user <> mapping.relation_user;
 
     `;
 
@@ -287,5 +287,20 @@ exports.getDept = (req,res,next) => {
   }
   catch(error){
     next(error);
+  }
+}
+
+exports.getSkill = (req,res,next) => {
+  try{
+    let sql = "select distinct name from master_verticals";
+    db.query(sql,(error,result) => {
+      if(error || result.length == 0){
+        return next(error || createError.NotFound());
+      }
+      return res.send(result);
+    })
+  }
+  catch(error){
+    next(error)
   }
 }

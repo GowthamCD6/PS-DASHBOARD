@@ -34,11 +34,19 @@ const availableSkills = [
   "Vue.js",
   "Networking",
 ];
-const deptMap = { 1: "CSE", 2: "IT", 3: "ECE", 4: "EEE", 5: "MECH" };
 const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
 
 const MenteeDashboard = () => {
   const [mentees, setMentees] = useState([]);
+  const [departments, setDepartments] = useState([
+    // fallback in case api fails
+    "CSE",
+    "IT",
+    "ECE",
+    "EEE",
+    "AIDS",
+    "AIML"
+  ]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -81,37 +89,49 @@ const MenteeDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
-  // Fetch mentees from API
+  // Fetch mentees from API and transform to table format
   useEffect(() => {
     const fetchMentees = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/student_faculty/get_relations",{
-          withCredentials:true
-        }
+        const response = await axios.get(
+          "http://localhost:3000/student/user_data/1",
+          { withCredentials: true }
         );
         const studentsData = response.data || [];
-
         // Transform API data to match the expected format
-        const menteesList = studentsData.map((student, idx) => ({
-          id: student.id || student.student_id || idx,
-          name: student.name || student.student_name || `Student ${idx + 1}`,
-          regNo:
-            student.reg_no ||
-            student.registration_number ||
-            `REG${String(idx + 1).padStart(3, "0")}`,
-          department: student.department || "CSE",
-          year: student.year || "III",
-          totalLevels: student.course_total_levels ?? student.totalLevels ?? 0,
-          completedLevels:
-            student.completedLevels ?? Math.floor(Math.random() * 10) + 1,
-          cumulativeRewards: student.cumulativeRewards ?? 800 + 100 * idx,
-          currentSemRewards: student.currentSemRewards ?? 120 + 20 * idx,
-          skills: student.skills || {
-            JavaScript: { level: 4 + idx, daysAgo: 3 + idx },
-            Python: { level: 3 + idx, daysAgo: 6 + idx },
-            React: { level: 5 + idx, daysAgo: 2 * idx },
-          },
-        }));
+        const menteesList = studentsData.map((student, idx) => {
+          // Build skills object: { skillName: { level, daysAgo } }
+          const skillsObj = {};
+          if (student.courses && Array.isArray(student.courses)) {
+            student.courses.forEach((course) => {
+              skillsObj[course.course_name] = {
+                level: course.course_completed_levels ?? 0,
+                daysAgo:
+                  course.gap_days !== undefined && course.gap_days !== null
+                    ? course.gap_days
+                    : 999,
+              };
+            });
+          }
+          // For ALL availableSkills, if a skill doesn't exist, set zeros (so table always shows 0 for missing)
+          availableSkills.forEach((skill) => {
+            if (!skillsObj[skill]) {
+              skillsObj[skill] = { level: 0, daysAgo: 0 };
+            }
+          });
+          return {
+            id: student.user_id || idx,
+            name: student.name,
+            regNo: student.user_id || `REG${String(idx + 1).padStart(3, "0")}`,
+            department: student.dept,
+            year: yearMap[student.year] || "I",
+            totalLevels: student.total_levels ?? 0,
+            completedLevels: student.total_completed_levels ?? 0,
+            cumulativeRewards: student.cumulative_rewards ?? 0,
+            currentSemRewards: student.current_semester_rewards ?? 0,
+            skills: skillsObj,
+          };
+        });
         setMentees(menteesList);
       } catch (err) {
         console.error("Error fetching mentees:", err);
@@ -124,6 +144,28 @@ const MenteeDashboard = () => {
       }
     };
     fetchMentees();
+  }, []);
+
+  // Fetch departments from API
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/getDept", {
+          withCredentials: true,
+        });
+        if (Array.isArray(res.data)) {
+          setDepartments(res.data.map((deptObj) => deptObj.dept));
+        }
+      } catch (err) {
+        // fallback to default (already set), optionally show error
+        setSnackbar({
+          open: true,
+          message: "Failed to load departments",
+          severity: "error",
+        });
+      }
+    };
+    fetchDepartments();
   }, []);
 
   const handleCumulativeOpen = (event) =>
@@ -163,7 +205,6 @@ const MenteeDashboard = () => {
   const handleSnackbarClose = () =>
     setSnackbar((prev) => ({ ...prev, open: false }));
 
-  // ... Filter, sort, and style helpers as in previous code ...
   const getDaysColor = (days) => {
     if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" };
     if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" };
@@ -557,11 +598,11 @@ const MenteeDashboard = () => {
                 }}
               >
                 <MenuItem value="all">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
+                {departments.map((dept) => (
+                  <MenuItem value={dept} key={dept}>
+                    {dept}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -976,14 +1017,14 @@ const MenteeDashboard = () => {
                           key={skillCol.id}
                           style={{ ...styles.td, color: "#9ca3af" }}
                         >
-                          -
+                          0
                         </td>
                       );
                     return (
                       <td key={skillCol.id} style={styles.td}>
                         <div style={styles.skillCell}>
                           <span style={{ ...styles.skillLevelText }}>
-                            {`Level ${skillData.level}`}
+                            {`Level ${skillData.level ?? 0}`}
                           </span>
                           <span
                             style={{
@@ -1002,7 +1043,7 @@ const MenteeDashboard = () => {
                           >
                             {skillData.daysAgo === 999
                               ? "999d ago"
-                              : `${skillData.daysAgo}d ago`}
+                              : `${skillData.daysAgo ?? 0}d ago`}
                           </span>
                         </div>
                       </td>

@@ -3,14 +3,9 @@ import axios from "axios";
 import TotalLevelsModal from "../Modal/Total";
 import CompletedLevelsModal from "../Modal/Completed";
 import {
-  Search,
-  Plus,
   ChevronDown,
-  Filter,
   ArrowUp,
-  ArrowDown,
-  X,
-  Target,
+  ArrowDown
 } from "lucide-react";
 import {
   TableCell,
@@ -20,7 +15,6 @@ import {
   TextField,
   IconButton,
   Popover,
-  Typography,
   Button,
   FormControl,
   InputLabel,
@@ -42,13 +36,14 @@ const availableSkills = [
   "Node.js",
   "Angular",
   "Vue.js",
+  "Networking",
 ];
 
-const deptMap = { 1: "CSE", 2: "IT", 3: "ECE", 4: "EEE", 5: "MECH" };
 const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
 
+const normalizeSkillName = (name) => name;
+
 const Dash = () => {
-  // API-driven state!
   const [students, setStudents] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -84,7 +79,6 @@ const Dash = () => {
   const [showCumulativeFilter, setShowCumulativeFilter] = useState(false);
   const [showCurrentSemFilter, setShowCurrentSemFilter] = useState(false);
 
-  // MUI Popover states
   const [cumulativeAnchorEl, setCumulativeAnchorEl] = useState(null);
   const [cumulativePopoverFilter, setCumulativePopoverFilter] = useState({
     type: "all",
@@ -100,36 +94,66 @@ const Dash = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
-  // --- Fetch students from API ---
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/student/get_all_users",{withCredentials: true});
+        const response = await axios.get("http://localhost:3000/student/get_all_users", { withCredentials: true });
         if (Array.isArray(response.data)) {
-          // Map response to UI fields and fill missing fields with dummy data
-          const transformed = response.data.map((student, idx) => ({
-            id: student.user_id || idx,
-            name: student.name || "Unknown Name",withCredentials: true,
-            regNo: student.user_id || `REG${idx + 1}`,
-            department: deptMap[student.dept] || "CSE",
-            year: yearMap[student.year] || "I",
-            completedLevels: student.completedLevels ?? Math.floor(Math.random() * 10) + 1,
-            totalLevels: student.course_total_levels ?? student.totalLevels ?? 0,
-            cumulativeRewards: student.cumulativeRewards ?? Math.floor(Math.random() * 100) + 1,
-            currentSemRewards: student.currentSemRewards ?? Math.floor(Math.random() * 50) + 1,
-            skills: (() => {
-              const out = {};
-              skillColumns.forEach((col) => {
-                out[col.skill] =
-                  (student.skills?.[col.skill]) ||
-                  {
-                    level: Math.floor(Math.random() * 10) + 1,
-                    daysAgo: Math.floor(Math.random() * 30) + 1,
-                  };
+          const transformed = response.data.map((student, idx) => {
+            const skills = {};
+            if (Array.isArray(student.courses)) {
+              student.courses.forEach((course) => {
+                skills[normalizeSkillName(course.course_name)] = {
+                  level: Number(course.course_completed_levels) || 0,
+                  daysAgo:
+                    course.gap_days !== undefined && course.gap_days !== null
+                      ? Number(course.gap_days)
+                      : 999,
+                  totalLevels: Number(course.course_total_levels) || 0,
+                  completedLevels: Number(course.course_completed_levels) || 0,
+                };
               });
-              return out;
-            })(),
-          }));
+            }
+            skillColumns.forEach((col) => {
+              if (!skills[col.skill]) {
+                skills[col.skill] = {
+                  level: 0,
+                  daysAgo: 999,
+                  totalLevels: 0,
+                  completedLevels: 0,
+                };
+              }
+            });
+            return {
+              id: student.user_id || idx,
+              name: student.name || "Unknown Name",
+              regNo: student.user_id || `REG${idx + 1}`,
+              department: student.dept || "CSE", // <- API dept
+              year:
+                typeof student.year === "number"
+                  ? yearMap[student.year] || "I"
+                  : yearMap[parseInt(student.year)] || student.year || "I",
+              completedLevels:
+                Number(student.total_completed_levels) ||
+                Number(student.completedLevels) ||
+                0,
+              totalLevels:
+                Number(student.total_levels) ||
+                Number(student.course_total_levels) ||
+                Number(student.totalLevels) ||
+                0,
+              cumulativeRewards:
+                Number(student.cumulative_rewards) ||
+                Number(student.cumulativeRewards) ||
+                0,
+              currentSemRewards:
+                Number(student.current_semester_rewards) ||
+                Number(student.currentSemRewards) ||
+                0,
+              skills,
+              role: student.role || "Student", // <- API role
+            };
+          });
           setStudents(transformed);
         } else {
           throw new Error("API response is not an array");
@@ -147,7 +171,22 @@ const Dash = () => {
     fetchStudents();
   }, [skillColumns]);
 
-  // MUI Popover handlers
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".filter-popup")) {
+        setShowNameSearch(false);
+        setShowRegNoSearch(false);
+        setShowCumulativeFilter(false);
+        setShowCurrentSemFilter(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleCumulativeOpen = (event) => setCumulativeAnchorEl(event.currentTarget);
   const handleCumulativeClose = () => setCumulativeAnchorEl(null);
   const handleCumulativeApply = () => {
@@ -184,29 +223,10 @@ const Dash = () => {
   const handleRegNoOpen = (event) => setRegNoAnchorEl(event.currentTarget);
   const handleRegNoClose = () => setRegNoAnchorEl(null);
 
-  // Handle snackbar close
   const handleSnackbarClose = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // Click outside handler for popups
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".filter-popup")) {
-        setShowNameSearch(false);
-        setShowRegNoSearch(false);
-        setShowCumulativeFilter(false);
-        setShowCurrentSemFilter(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Get level badge color
   const getLevelBadgeColor = (level) => {
     if (level >= 9) return "#059669";
     if (level >= 7) return "#16a34a";
@@ -215,21 +235,19 @@ const Dash = () => {
     return "#dc2626";
   };
 
-  // Get days ago color with mild colors
   const getDaysColor = (days) => {
     if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" };
     if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" };
     return { bg: "#fecaca", text: "#dc2626" };
   };
 
-  // --- Filter students ---
   const filteredStudents = useMemo(() => {
     if (!students || !Array.isArray(students)) return [];
 
     return students.filter((student) => {
       if (!student || !student.skills) return false;
 
-      if (filters.role !== "all" && filters.role !== "all") return false; // role filtering: not implemented
+      if (filters.role !== "all" && student.role?.toLowerCase() !== filters.role) return false;
       if (filters.year !== "all" && student.year !== filters.year) return false;
       if (
         filters.department !== "all" &&
@@ -287,7 +305,7 @@ const Dash = () => {
       }
 
       for (const skillCol of skillColumns) {
-        if (skillCol.levelFilter) {
+        if (skillCol.levelFilter !== "" && skillCol.levelFilter !== null && skillCol.levelFilter !== undefined) {
           const skillData = student.skills && student.skills[skillCol.skill];
           const studentLevel = skillData ? skillData.level : 0;
           if (studentLevel !== parseInt(skillCol.levelFilter)) return false;
@@ -306,7 +324,6 @@ const Dash = () => {
     skillColumns,
   ]);
 
-  // --- Sort students ---
   const sortedStudents = useMemo(() => {
     if (!filteredStudents || !Array.isArray(filteredStudents)) return [];
     if (!sortConfig.key || !sortConfig.direction) return filteredStudents;
@@ -409,7 +426,7 @@ const Dash = () => {
       backgroundColor: "#f6f7fb",
       fontFamily:
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      display: "block", // revert to block layout
+      display: "block",
     },
     header: {
       padding: "20px 35px",
@@ -453,7 +470,7 @@ const Dash = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       border: "1px solid #e2e8f0",
-      overflow: "hidden", // revert to hidden
+      overflow: "hidden",
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       margin: "24px auto 0",
       width: "97.5%",
