@@ -453,7 +453,7 @@ const Dash = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       border: "1px solid #e2e8f0",
-      overflow: "hidden", // revert to hidden
+      overflow: "hidden", 
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
       margin: "24px auto 0",
       width: "97.5%",

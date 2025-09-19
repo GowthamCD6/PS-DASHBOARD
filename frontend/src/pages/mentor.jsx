@@ -204,7 +204,7 @@ const MentorManagementSystem = () => {
         role: type === 'Faculty' ? 'Professor' : 'Intern',
         email: `mentor${i}@example.edu`,
         phone: `9${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`,
-        maxStudents: 50, // 50 students per mentor
+        maxStudents: 40, // 40 students per mentor
         expertise: ['Programming', 'Research', 'Career Guidance']
       });
     }
@@ -332,8 +332,6 @@ const MentorManagementSystem = () => {
   // Filtered mentors based on search criteria (mapping view)
   const filteredMentors = useMemo(() => {
     if (viewMode === 'mapping') {
-      // Per user request, only show newly added mentors in the mapping view.
-      // We identify new mentors as those with an ID greater than the original set.
       const maxOriginalMentorId = 4; 
       const newMentors = mentors.filter(mentor => mentor.id > maxOriginalMentorId);
 
@@ -877,108 +875,179 @@ const MentorManagementSystem = () => {
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ p: 2 }}>
-           <Grid container spacing={2}>
-  {filteredMentors
-    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    .map((mentor) => {
-      const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
+          <Box sx={{ p: 3 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 3,
+                '@media (max-width: 1200px)': {
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                },
+                '@media (max-width: 900px)': {
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                },
+                '@media (max-width: 600px)': {
+                  gridTemplateColumns: '1fr',
+                },
+              }}
+            >
+              {filteredMentors
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((mentor) => {
+                  const assignedStudents = mentorStudentMapping[mentor.id]?.students || [];
 
-      return (
-        <Grid item xs={12} sm={6} md={4} key={mentor.id}>
-          <Card
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              },
-            }}
-          >
-            <CardContent sx={{ flexGrow: 1, p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar
-                  sx={{
-                    width: 56,
-                    height: 56,
-                    mr: 2,
-                    fontSize: '1.5rem',
-                    backgroundColor:
-                      mentor.type === 'Faculty'
-                        ? 'primary.main'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.main'
-                        : 'grey.500',
-                  }}
-                >
-                  {mentor.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </Avatar>
-                <Box>
-                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                    {mentor.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {mentor.department} • {mentor.role}
-                  </Typography>
-                </Box>
-              </Box>
+                  return (
+                    <Card
+                      key={mentor.id}
+                      sx={{
+                        width: '100%',
+                        minWidth: '280px',
+                        height: '320px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                        borderRadius: '16px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          transform: 'translateY(-8px) scale(1.02)',
+                          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                          borderColor: '#417ee1ff',
+                        },
+                      }}
+                    >
+                      <CardContent sx={{ flexGrow: 1, p: 3, pb: 2 }}>
+                        <Box sx={{ textAlign: 'center', mb: 3 }}>
+                          <Avatar
+                            sx={{
+                              width: 72,
+                              height: 72,
+                              mx: 'auto',
+                              mb: 2,
+                              fontSize: '2.2rem',
+                              fontWeight: 600,
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                            }}
+                          >
+                            <PersonIcon sx={{ fontSize: '2.2rem', color: 'white' }} />
+                          </Avatar>
+                          <Typography
+                            variant="h6"
+                            component="div"
+                            sx={{
+                              fontWeight: 700,
+                              color: '#1e293b',
+                              mb: 0.5,
+                              fontSize: '1.1rem',
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {mentor.name}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: '#64748b',
+                              fontSize: '0.875rem',
+                              mb: 2,
+                            }}
+                          >
+                            {mentor.department} • {mentor.role}
+                          </Typography>
+                          <Chip
+                            label={mentor.type}
+                            size="small"
+                            sx={{
+                              background:
+                                mentor.type === 'Faculty'
+                                  ? 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)'
+                                  : mentor.type === 'Intern'
+                                  ? 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)'
+                                  : 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                              color:
+                                mentor.type === 'Faculty'
+                                  ? '#1e40af'
+                                  : mentor.type === 'Intern'
+                                  ? '#7c2d12'
+                                  : '#475569',
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              border: 'none',
+                            }}
+                          />
+                        </Box>
+                      </CardContent>
 
-              <Box sx={{ display: 'flex', gap: 1, my: 2 }}>
-                <Chip
-                  label={mentor.type}
-                  size="small"
-                  sx={{
-                    backgroundColor:
-                      mentor.type === 'Faculty'
-                        ? 'primary.light'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.light'
-                        : 'grey.300',
-                    color:
-                      mentor.type === 'Faculty'
-                        ? 'primary.dark'
-                        : mentor.type === 'Intern'
-                        ? 'secondary.dark'
-                        : 'grey.700',
-                    fontWeight: 500,
-                  }}
-                />
-              </Box>
-            </CardContent>
-
-            <Divider />
-
-            <CardActions sx={{ p: 2, justifyContent: 'space-between' }}>
-                <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {assignedStudents.length}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        Assigned Students
-                    </Typography>
-                </Box>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => handleOpenMentorDialog(mentor)}
-                sx={{ textTransform: 'none', boxShadow: 'none' }}
-              >
-                View Details
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      );
-    })}
-</Grid>
+                      <Box
+                        sx={{
+                          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                          borderTop: '1px solid #e2e8f0',
+                          p: 2.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginTop: '-15px'
+                        }}
+                      >
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 700,
+                              color: '#3b82f6',
+                              mb: 0.5,
+                              fontSize: '2rem',
+                              marginTop: '-10px',
+                              marginBottom: '-5px',
+                            }}
+                          >
+                            {assignedStudents.length}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#64748b',
+                              fontWeight: 500,
+                              fontSize: '0.75rem',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                            }}
+                          >
+                            Students
+                          </Typography>
+                        </Box>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleOpenMentorDialog(mentor)}
+                          sx={{
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            textTransform: 'none',
+                            borderRadius: '8px',
+                            px: 2.5,
+                            py: 1,
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                            border: 'none',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                              boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
+                              transform: 'translateY(-1px)',
+                            },
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </Box>
+                    </Card>
+                  );
+                })}
+            </Box>
           </Box>
         )}
         
@@ -1240,36 +1309,47 @@ const MentorManagementSystem = () => {
                     maxHeight: 400,
                     overflow: 'auto'
                   }}>
-                    <Grid container spacing={1}>
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: 2,
+                      }}
+                    >
                       {mentorStudentMapping[selectedMentorDetails.id].students.map((student) => (
-                        <Grid item xs={12} sm={6} md={4} key={student.id}>
-                          <Card 
-                            sx={{ 
-                              p: 1.5, 
-                              backgroundColor: 'white',
-                              border: '1px solid',
-                              borderColor: 'divider',
-                              borderRadius: '6px'
-                            }}
-                          >
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {student.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {student.regNo}
-                            </Typography>
-                            <br />
-                            <Typography variant="caption" color="text.secondary">
-                              {student.department} - {student.year} Year
-                            </Typography>
-                            <br />
-                            <Typography variant="caption" color="text.secondary">
-                              {student.email}
-                            </Typography>
-                          </Card>
-                        </Grid>
+                        <Card 
+                          key={student.id}
+                          sx={{ 
+                            p: 2, 
+                            backgroundColor: 'white',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: '8px',
+                            width: '100%',
+                            minWidth: '250px',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
+                            }
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                            {student.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                            {student.regNo}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                            {student.department} - {student.year} Year
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {student.email}
+                          </Typography>
+                        </Card>
                       ))}
-                    </Grid>
+                    </Box>
                   </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
