@@ -299,7 +299,7 @@ exports.getMentors = (req,res,next) => {
   try{
      const {id} = req.params;
      if(!id){
-       let sql = "select t1.name as name,t2.name as role from master_user t1 join master_role t2 on t1.role = t2.id where t1.role = 2 or t1.role = 4";
+       let sql = "select t1.name as name,t2.name as role,t1.email as emailId,t1.user_id as id from master_user t1 join master_role t2 on t1.role = t2.id where t1.role = 2 or t1.role = 4";
        db.query(sql,(error,result) => {
         if(error || result.length == 0){
           return next(error || createError.NotFound());

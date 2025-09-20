@@ -9,6 +9,7 @@ router.get("/student_faculty/get_relations",getController.get_relations);
 router.get("/getRoles",getController.getRoles);
 router.get("/getcourse",getController.getcourse);
 router.get("/getDept",getController.getDept);
-router.get("/getMentors/:id",getController.getMentors); // also can be used for count number of mentees
+router.get("/getMentors/:id",getController.getMentors); // counts no.of mentees
+router.get("/getMentors",getController.getMentors); // gets the list of mentors
 
 module.exports = router;
