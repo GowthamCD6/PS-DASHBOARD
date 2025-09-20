@@ -97,6 +97,75 @@ const MentorManagementSystem = () => {
         },
       ],
     },
+    // Sample students assigned to Intern mentors
+    {
+      id: 4,
+      name: "Sneha Patel",
+      regNo: "20CS004",
+      department: "Computer Science",
+      year: "II",
+      email: "sneha.patel@example.edu",
+      phone: "9234567890",
+      mentors: [
+        {
+          id: 3,
+          name: "Mr. Amit Kumar",
+          role: "Industry Mentor",
+          type: "Intern",
+        },
+      ],
+    },
+    {
+      id: 5,
+      name: "Rajesh Kumar",
+      regNo: "20IT005",
+      department: "Information Technology",
+      year: "III",
+      email: "rajesh.kumar@example.edu",
+      phone: "9345678901",
+      mentors: [
+        {
+          id: 3,
+          name: "Mr. Amit Kumar",
+          role: "Career Mentor",
+          type: "Intern",
+        },
+      ],
+    },
+    {
+      id: 6,
+      name: "Anita Sharma",
+      regNo: "20EC006",
+      department: "Electronics",
+      year: "I",
+      email: "anita.sharma@example.edu",
+      phone: "9456789012",
+      mentors: [
+        {
+          id: 4,
+          name: "Ms. Neha Joshi",
+          role: "Placement Mentor",
+          type: "Intern",
+        },
+      ],
+    },
+    {
+      id: 7,
+      name: "Vikram Singh",
+      regNo: "20ME007",
+      department: "Mechanical",
+      year: "II",
+      email: "vikram.singh@example.edu",
+      phone: "9567890123",
+      mentors: [
+        {
+          id: 4,
+          name: "Ms. Neha Joshi",
+          role: "Skills Mentor",
+          type: "Intern",
+        },
+      ],
+    },
   ]);
 
   // Enhanced mentors data with proper categorization (original format)
@@ -167,6 +236,7 @@ const MentorManagementSystem = () => {
       const dept = departments[Math.floor(Math.random() * departments.length)];
       const year = years[Math.floor(Math.random() * years.length)];
       const deptCode = dept.substring(0, 2).toUpperCase();
+      const mentorId = Math.floor(Math.random() * 50) + 1;
 
       students.push({
         id: i,
@@ -178,12 +248,15 @@ const MentorManagementSystem = () => {
         phone: `9${Math.floor(Math.random() * 1000000000)
           .toString()
           .padStart(9, "0")}`,
-        mentorId: Math.floor(Math.random() * 50) + 1, // Assigned to one of 50 mentors
+        mentorId: mentorId,
         assignedDate: new Date(
           2024,
           Math.floor(Math.random() * 12),
           Math.floor(Math.random() * 28) + 1
         ),
+        // For Faculty mentors (ids 1-25), 70% are default assigned, 30% manually assigned
+        // For Intern mentors (ids 26-50), all are manually assigned
+        isDefaultAssigned: mentorId <= 25 ? Math.random() < 0.7 : false,
       });
     }
     return students;
@@ -202,11 +275,15 @@ const MentorManagementSystem = () => {
     ];
     const mentors = [];
     for (let i = 1; i <= 50; i++) {
-      const type = mentorTypes[Math.floor(Math.random() * mentorTypes.length)];
+      // First 25 Faculty, last 25 Interns for clear distribution  
+      const type = i <= 25 ? "Faculty" : "Intern";
       const dept = departments[Math.floor(Math.random() * departments.length)];
       mentors.push({
         id: i,
-        name: `Dr. Mentor ${i.toString().padStart(2, "0")}`,
+        name:
+          type === "Faculty"
+            ? `Dr. Faculty ${i.toString().padStart(2, "0")}`
+            : `Dr. Mentor ${i.toString().padStart(2, "0")}`,
         department: dept,
         type: type,
         role: type === "Faculty" ? "Professor" : "Intern",
@@ -215,7 +292,10 @@ const MentorManagementSystem = () => {
           .toString()
           .padStart(9, "0")}`,
         maxStudents: 40, // 40 students per mentor
-        expertise: ["Programming", "Research", "Career Guidance"],
+        expertise:
+          type === "Faculty"
+            ? ["Programming", "Research", "Academic Guidance"]
+            : ["Industry Skills", "Career Guidance", "Practical Training"],
       });
     }
     return mentors;
@@ -344,18 +424,58 @@ const MentorManagementSystem = () => {
     setSnackbar({ open: true, message, severity });
   };
 
-  // Memoized calculations for performance with large datasets (mapping view)
+  // Memoized calculations for performance with large datasets (mapping view and assignment view)
   const mentorStudentMapping = useMemo(() => {
-    if (viewMode !== "mapping") return {};
     const mapping = {};
-    mentors.forEach((mentor) => {
-      mapping[mentor.id] = {
-        mentor: mentor,
-        students: students.filter((student) => student.mentorId === mentor.id),
-      };
-    });
+
+    if (viewMode === "mapping") {
+      // For mapping view, use generated student data
+      mentors.forEach((mentor) => {
+        mapping[mentor.id] = {
+          mentor: mentor,
+          students: students.filter(
+            (student) => student.mentorId === mentor.id
+          ),
+        };
+      });
+    } else {
+      // For assignment view, use original student data with mentors array
+      const assignmentMapping = {};
+
+      // Initialize all mentors with empty student arrays
+      originalMentors.forEach((mentor) => {
+        assignmentMapping[mentor.id] = {
+          mentor: mentor,
+          students: [],
+        };
+      });
+
+      // Add students to their respective mentors based on mentors array
+      originalStudents.forEach((student) => {
+        if (student.mentors && student.mentors.length > 0) {
+          student.mentors.forEach((mentorRef) => {
+            if (assignmentMapping[mentorRef.id]) {
+              // Convert student to mapping format with assignment info
+              const studentWithAssignment = {
+                ...student,
+                isDefaultAssigned:
+                  mentorRef.type === "Faculty" &&
+                  mentorRef.role === "Academic Mentor",
+                assignedDate: new Date("2024-01-15"), // Sample assignment date
+              };
+              assignmentMapping[mentorRef.id].students.push(
+                studentWithAssignment
+              );
+            }
+          });
+        }
+      });
+
+      return assignmentMapping;
+    }
+
     return mapping;
-  }, [students, mentors, viewMode]);
+  }, [students, mentors, viewMode, originalStudents, originalMentors]);
 
   // Filtered mentors based on search criteria (mapping view)
   const filteredMentors = useMemo(() => {
@@ -586,6 +706,17 @@ const MentorManagementSystem = () => {
         backgroundColor: "#f6f7fb",
         minHeight: "100vh",
         width: "100%",
+        position: "relative",
+        "&::before": {
+          content: '""',
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "#f6f7fb",
+          zIndex: -1,
+        },
       }}
     >
       <Card
@@ -1007,7 +1138,12 @@ const MentorManagementSystem = () => {
           />
         </Card>
       ) : (
-        <Card sx={{ borderRadius: "12px", overflow: "hidden" }}>
+        <Card sx={{ 
+          borderRadius: "12px", 
+          overflow: "hidden",
+          backgroundColor: "white",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+        }}>
           <Box
             sx={{
               p: 2,
@@ -1016,6 +1152,7 @@ const MentorManagementSystem = () => {
               alignItems: "center",
               borderBottom: "1px solid",
               borderColor: "divider",
+              backgroundColor: "white"
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 500 }}>
@@ -1052,7 +1189,11 @@ const MentorManagementSystem = () => {
               </Typography>
             </Box>
           ) : (
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ 
+              p: 3, 
+              backgroundColor: "#f6f7fb",
+              minHeight: "60vh"
+            }}>
               <Box
                 sx={{
                   display: "grid",
