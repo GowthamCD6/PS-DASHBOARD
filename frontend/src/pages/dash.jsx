@@ -27,18 +27,6 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 
-const availableSkills = [
-  "JavaScript",
-  "Python",
-  "React",
-  "Java",
-  "C++",
-  "Node.js",
-  "Angular",
-  "Vue.js",
-  "Networking",
-];
-
 const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
 
 const normalizeSkillName = (name) => name;
@@ -51,6 +39,12 @@ const Dash = () => {
     severity: "info",
   });
 
+  // Dynamic dropdowns
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [roles, setRoles] = useState([]);
+
+  // Filter states
   const [filters, setFilters] = useState({
     role: "all",
     year: "all",
@@ -68,9 +62,10 @@ const Dash = () => {
     value: "",
   });
 
+  // Skill columns are dynamic
   const [skillColumns, setSkillColumns] = useState([
-    { id: "skill1", skill: "JavaScript", levelFilter: "" },
-    { id: "skill2", skill: "Python", levelFilter: "" },
+    { id: "skill1", skill: "", levelFilter: "" },
+    { id: "skill2", skill: "", levelFilter: "" },
   ]);
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
@@ -94,81 +89,149 @@ const Dash = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
+  // Load all backend data on mount
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchDropdownsAndUsers = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/student/get_all_users", { withCredentials: true });
-        if (Array.isArray(response.data)) {
-          const transformed = response.data.map((student, idx) => {
-            const skills = {};
-            if (Array.isArray(student.courses)) {
-              student.courses.forEach((course) => {
-                skills[normalizeSkillName(course.course_name)] = {
-                  level: Number(course.course_completed_levels) || 0,
-                  daysAgo:
-                    course.gap_days !== undefined && course.gap_days !== null
-                      ? Number(course.gap_days)
-                      : 999,
-                  totalLevels: Number(course.course_total_levels) || 0,
-                  completedLevels: Number(course.course_completed_levels) || 0,
-                };
-              });
-            }
-            skillColumns.forEach((col) => {
-              if (!skills[col.skill]) {
-                skills[col.skill] = {
-                  level: 0,
-                  daysAgo: 999,
-                  totalLevels: 0,
-                  completedLevels: 0,
-                };
-              }
+        // Parallel fetch for dropdowns
+        const [coursesRes, deptsRes, rolesRes, usersRes] = await Promise.all([
+          axios.get("http://localhost:3000/getcourse", { withCredentials: true }),
+          axios.get("http://localhost:3000/getDept", { withCredentials: true }),
+          axios.get("http://localhost:3000/getRoles", { withCredentials: true }),
+          axios.get("http://localhost:3000/student/get_all_users", { withCredentials: true }),
+        ]);
+
+        // Skills = course names
+        const skills = Array.isArray(coursesRes.data)
+          ? coursesRes.data.map((c) => c.name)
+          : [];
+        setAvailableSkills(skills);
+
+        // Departments = dept field
+        const depts = Array.isArray(deptsRes.data)
+          ? deptsRes.data.map((d) => d.dept)
+          : [];
+        setDepartments(depts);
+
+        // Roles = name field, lowercased for filter
+        const rolesList = Array.isArray(rolesRes.data)
+          ? rolesRes.data.map((r) => r.name)
+          : [];
+        setRoles(rolesList);
+
+        // Students
+        const userArr = Array.isArray(usersRes.data) ? usersRes.data : [];
+        // Set default skills in columns if not yet set
+        setSkillColumns((prevCols) => {
+          // If empty, prefill with first 2 skills if available
+          if (
+            prevCols.filter((col) => col.skill).length === 0 &&
+            skills.length >= 2
+          ) {
+            return [
+              { id: "skill1", skill: skills[0], levelFilter: "" },
+              { id: "skill2", skill: skills[1], levelFilter: "" },
+            ];
+          }
+          // If some columns exist but have empty skill, fill from skills
+          return prevCols.map((col, idx) => ({
+            ...col,
+            skill: col.skill || skills[idx] || "",
+          }));
+        });
+
+        // Transform students for table
+        const transformed = userArr.map((student, idx) => {
+          // Build skills map with all availableSkills (from course_name in backend)
+          const skillsMap = {};
+          if (Array.isArray(student.courses)) {
+            student.courses.forEach((course) => {
+              // Map by course_name (not generic skill name)
+              skillsMap[normalizeSkillName(course.course_name)] = {
+                level: Number(course.course_completed_levels) || 0,
+                daysAgo:
+                  course.gap_days !== undefined && course.gap_days !== null
+                    ? Number(course.gap_days)
+                    : 999,
+                totalLevels: Number(course.course_total_levels) || 0,
+                completedLevels: Number(course.course_completed_levels) || 0,
+              };
             });
-            return {
-              id: student.user_id || idx,
-              name: student.name || "Unknown Name",
-              regNo: student.user_id || `REG${idx + 1}`,
-              department: student.dept || "CSE", // <- API dept
-              year:
-                typeof student.year === "number"
-                  ? yearMap[student.year] || "I"
-                  : yearMap[parseInt(student.year)] || student.year || "I",
-              completedLevels:
-                Number(student.total_completed_levels) ||
-                Number(student.completedLevels) ||
-                0,
-              totalLevels:
-                Number(student.total_levels) ||
-                Number(student.course_total_levels) ||
-                Number(student.totalLevels) ||
-                0,
-              cumulativeRewards:
-                Number(student.cumulative_rewards) ||
-                Number(student.cumulativeRewards) ||
-                0,
-              currentSemRewards:
-                Number(student.current_semester_rewards) ||
-                Number(student.currentSemRewards) ||
-                0,
-              skills,
-              role: student.role || "Student", // <- API role
-            };
+          }
+          // Fill missing skills as 0
+          skills.forEach((skill) => {
+            if (!skillsMap[skill]) {
+              skillsMap[skill] = {
+                level: 0,
+                daysAgo: 999,
+                totalLevels: 0,
+                completedLevels: 0,
+              };
+            }
           });
-          setStudents(transformed);
-        } else {
-          throw new Error("API response is not an array");
-        }
+          return {
+            id: student.user_id || idx,
+            name: student.name || "Unknown Name",
+            regNo: student.user_id || `REG${idx + 1}`,
+            department: student.dept || "", // dynamic
+            year:
+              typeof student.year === "number"
+                ? yearMap[student.year] || "I"
+                : yearMap[parseInt(student.year)] || student.year || "I",
+            completedLevels:
+              Number(student.total_completed_levels) ||
+              Number(student.completedLevels) ||
+              0,
+            totalLevels:
+              Number(student.total_levels) ||
+              Number(student.course_total_levels) ||
+              Number(student.totalLevels) ||
+              0,
+            cumulativeRewards:
+              Number(student.cumulative_rewards) ||
+              Number(student.cumulativeRewards) ||
+              0,
+            currentSemRewards:
+              Number(student.current_semester_rewards) ||
+              Number(student.currentSemRewards) ||
+              0,
+            skills: skillsMap,
+            role: (student.role || student.type || "Student").toLowerCase(), // normalize
+          };
+        });
+        setStudents(transformed);
       } catch (error) {
-        console.log(error)
         setSnackbar({
           open: true,
-          message: "Error fetching students from API",
+          message: "Error fetching dashboard data from API",
           severity: "error",
         });
       }
     };
+    fetchDropdownsAndUsers();
+    // eslint-disable-next-line
+  }, []);
 
-    fetchStudents();
+  // Update students when skillColumns change (for new added columns)
+  useEffect(() => {
+    // No need to refetch, just ensure each student's skills have all current skillColumns
+    setStudents((prev) =>
+      prev.map((student) => {
+        let newSkills = { ...student.skills };
+        skillColumns.forEach((col) => {
+          if (col.skill && !(col.skill in newSkills)) {
+            newSkills[col.skill] = {
+              level: 0,
+              daysAgo: 999,
+              totalLevels: 0,
+              completedLevels: 0,
+            };
+          }
+        });
+        return { ...student, skills: newSkills };
+      })
+    );
+    // eslint-disable-next-line
   }, [skillColumns]);
 
   useEffect(() => {
@@ -247,7 +310,7 @@ const Dash = () => {
     return students.filter((student) => {
       if (!student || !student.skills) return false;
 
-      if (filters.role !== "all" && student.role?.toLowerCase() !== filters.role) return false;
+      if (filters.role !== "all" && student.role?.toLowerCase() !== filters.role.toLowerCase()) return false;
       if (filters.year !== "all" && student.year !== filters.year) return false;
       if (
         filters.department !== "all" &&
@@ -380,7 +443,7 @@ const Dash = () => {
     const newId = `skill${skillColumns.length + 1}`;
     setSkillColumns([
       ...skillColumns,
-      { id: newId, skill: "", levelFilter: "" },
+      { id: newId, skill: availableSkills[0] || "", levelFilter: "" },
     ]);
   };
 
@@ -588,9 +651,11 @@ const Dash = () => {
                 }}
               >
                 <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="student">Student</MenuItem>
-                <MenuItem value="faculty">Faculty</MenuItem>
-                <MenuItem value="hod">HOD</MenuItem>
+                {roles.map((role) => (
+                  <MenuItem key={role.toLowerCase()} value={role.toLowerCase()}>
+                    {role}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
             <FormControl sx={{ minWidth: 140 }}>
@@ -638,11 +703,9 @@ const Dash = () => {
                 }}
               >
                 <MenuItem value="all">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
+                {departments.map((dept) => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>

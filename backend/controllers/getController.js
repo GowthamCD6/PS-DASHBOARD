@@ -6,7 +6,6 @@ exports.user_data = (req, res, next) => {
     const { id } = req.params; // mentor/authority user id (master_user.id)
     if (!id) return next(createError.BadRequest("id not found!"));
 
-    // allow caller to override semester start date via query param
     const semesterStart = req.query.semesterStart || "2025-01-01";
 
     const sql = `
@@ -44,7 +43,8 @@ SELECT
         SELECT JSON_ARRAYAGG(
             JSON_OBJECT(
                 'course_id', course_agg.course_id,
-                'course_name', course_agg.course_name,
+                'course_name', course_agg.course_name, -- vertical name
+                'level', course_agg.level,             -- course name
                 'gap_days', course_agg.gap_days,
                 'last_attempt_date', course_agg.last_attempt_date,
                 'course_total_levels', course_agg.course_total_levels,
@@ -54,7 +54,8 @@ SELECT
         FROM (
             SELECT 
                 c.id AS course_id,
-                c.name AS course_name,
+                v.name AS course_name,  -- from master_verticals
+                c.name AS level,        -- from master_course
                 c.level_order AS course_total_levels,
                 COALESCE(MAX(s.date), NULL) AS last_attempt_date,
                 COALESCE(DATEDIFF(NOW(), MAX(s.date)), 0) AS gap_days,
@@ -63,9 +64,10 @@ SELECT
                  WHERE sr2.user_id = u.id AND sr2.skill_id = c.id AND sr2.status = 1
                 ) AS course_completed_levels
             FROM master_course c
+            JOIN master_verticals v ON v.id = c.vertical_id
             LEFT JOIN s_register sr ON sr.skill_id = c.id AND sr.user_id = u.id
             LEFT JOIN s_slot s ON sr.slot_id = s.id
-            GROUP BY c.id
+            GROUP BY c.id, v.name, c.name
         ) AS course_agg
     ) AS courses
 
@@ -79,7 +81,6 @@ SELECT
     db.query(sql, [semesterStart, id], (err, rows) => {
       if (err) return next(err);
 
-      // Build students with nested courses
       const studentsMap = {};
 
       rows.forEach(r => {
@@ -110,60 +111,64 @@ SELECT
 };
 
 
+
 exports.get_all_users = (req, res, next) => {
   try {
     const semesterStart = req.query.semesterStart || "2025-01-01"; // optional query param
 
     let sql = `
       SELECT
-        u.user_id,
-        u.name,
-        u.email,
-        d.dept AS dept,
-        u.year,
-        u.type,
-        r.name AS role,
-        SUM(c.level_order) AS total_levels,
-        SUM(IFNULL(sr.completed_count, 0)) AS total_completed_levels,
+  u.user_id,
+  u.name,
+  u.email,
+  d.dept AS dept,
+  u.year,
+  u.type,
+  r.name AS role,
+  SUM(c.level_order) AS total_levels,
+  SUM(IFNULL(sr.completed_count, 0)) AS total_completed_levels,
 
-        -- cumulative rewards (all-time)
-        (SELECT COALESCE(SUM(mr.points),0)
-         FROM master_rp mr
-         WHERE mr.user_id = u.id AND mr.status = 1) AS cumulative_rewards,
+  -- cumulative rewards (all-time)
+  (SELECT COALESCE(SUM(mr.points),0)
+   FROM master_rp mr
+   WHERE mr.user_id = u.id AND mr.status = 1) AS cumulative_rewards,
 
-        -- current semester rewards (from semesterStart to now)
-        (SELECT COALESCE(SUM(mr2.points),0)
-         FROM master_rp mr2
-         WHERE mr2.user_id = u.id AND mr2.status = 1 AND mr2.date >= CAST(? AS DATE)
-        ) AS current_semester_rewards,
+  -- current semester rewards (from semesterStart to now)
+  (SELECT COALESCE(SUM(mr2.points),0)
+   FROM master_rp mr2
+   WHERE mr2.user_id = u.id AND mr2.status = 1 AND mr2.date >= CAST(? AS DATE)
+  ) AS current_semester_rewards,
 
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
-            'course_id', c.id,
-            'course_name', c.name,
-            'course_total_levels', c.level_order,
-            'course_completed_levels', IFNULL(sr.completed_count,0),
-            'last_attempt_date', sr.last_attempt_date,
-            'gap_days', IFNULL(DATEDIFF(CURDATE(), sr.last_attempt_date),0)
-          )
-        ) AS courses
-      FROM master_user u
-      JOIN master_role r ON r.id = u.role
-      JOIN master_dept d ON d.id = u.dept
-      CROSS JOIN master_course c
-      LEFT JOIN (
-        SELECT
-          sr.user_id,
-          sr.skill_id,
-          SUM(CASE WHEN sr.status = 1 THEN 1 ELSE 0 END) AS completed_count,
-          MAX(s.date) AS last_attempt_date
-        FROM s_register sr
-        LEFT JOIN s_slot s ON s.id = sr.slot_id
-        GROUP BY sr.user_id, sr.skill_id
-      ) sr ON sr.user_id = u.id AND sr.skill_id = c.id
-      WHERE u.type = 'student'
-      GROUP BY u.id, u.user_id, u.name, u.email, d.dept, u.year, u.type, r.name
-      ORDER BY u.user_id;
+  JSON_ARRAYAGG(
+    JSON_OBJECT(
+      'course_id', c.id,
+      'course_name', v.name,        -- from master_verticals
+      'level', c.name,              -- from master_course
+      'course_total_levels', c.level_order,
+      'course_completed_levels', IFNULL(sr.completed_count,0),
+      'last_attempt_date', sr.last_attempt_date,
+      'gap_days', IFNULL(DATEDIFF(CURDATE(), sr.last_attempt_date),0)
+    )
+  ) AS courses
+FROM master_user u
+JOIN master_role r ON r.id = u.role
+JOIN master_dept d ON d.id = u.dept
+CROSS JOIN master_course c
+JOIN master_verticals v ON v.id = c.vertical_id
+LEFT JOIN (
+  SELECT
+    sr.user_id,
+    sr.skill_id,
+    SUM(CASE WHEN sr.status = 1 THEN 1 ELSE 0 END) AS completed_count,
+    MAX(s.date) AS last_attempt_date
+  FROM s_register sr
+  LEFT JOIN s_slot s ON s.id = sr.slot_id
+  GROUP BY sr.user_id, sr.skill_id
+) sr ON sr.user_id = u.id AND sr.skill_id = c.id
+WHERE u.type = 'student'
+GROUP BY u.id, u.user_id, u.name, u.email, d.dept, u.year, u.type, r.name
+ORDER BY u.user_id;
+
     `;
 
     db.query(sql, [semesterStart], (err, results) => {
@@ -287,20 +292,5 @@ exports.getDept = (req,res,next) => {
   }
   catch(error){
     next(error);
-  }
-}
-
-exports.getSkill = (req,res,next) => {
-  try{
-    let sql = "select distinct name from master_verticals";
-    db.query(sql,(error,result) => {
-      if(error || result.length == 0){
-        return next(error || createError.NotFound());
-      }
-      return res.send(result);
-    })
-  }
-  catch(error){
-    next(error)
   }
 }
