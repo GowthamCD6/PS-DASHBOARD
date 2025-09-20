@@ -541,8 +541,8 @@ const MentorManagementSystem = () => {
               }}
             >
               {viewMode === 'assignment' 
-                ? 'Admin dashboard for managing student-mentor relationships'
-                : `View students mapped under each mentor (${students.length.toLocaleString()} students across ${mentors.length} mentors)`
+                ? ''
+                : `${students.length.toLocaleString()} students across ${mentors.length} mentors`
               }
             </Typography>
           </Box>
