@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import React from 'react';
 import Dashboard from './layout/Dashboard';
 import Dash from './pages/dash';
-import Mentor from './pages/mentor';
+import Mentor from './pages/Mentor Allocation/page/mentor';
 import Login from './components/Login/Login';
 import StudentDashboard from './pages/studentdash';
 import MenteeDashboard from './pages/mentee';
