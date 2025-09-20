@@ -7,6 +7,7 @@ import Login from './components/Login/Login';
 import StudentDashboard from './pages/studentdash';
 import MenteeDashboard from './pages/mentee';
 import ErrorBoundary from './components/ErrorBoundary';
+import Analytics from './pages/Analytics';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function DashboardRoutes() {
         <Route path="/mentor" element={<Mentor />} />
         <Route path="/student_dashboard" element={<StudentDashboard />} />
         <Route path="/mentee_dashboard" element={<MenteeDashboard />} />
+        <Route path="/view-analytics" element={<Analytics />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Dashboard>

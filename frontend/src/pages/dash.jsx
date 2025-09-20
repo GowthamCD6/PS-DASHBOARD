@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import TotalLevelsModal from "../Modal/Total";
 import CompletedLevelsModal from "../Modal/Completed";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ArrowUp,
@@ -43,6 +44,7 @@ const Dash = () => {
   const [availableSkills, setAvailableSkills] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
+  const navigate = useNavigate();
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -387,6 +389,10 @@ const Dash = () => {
     skillColumns,
   ]);
 
+  const nav_page = () => {
+    navigate("/view-analytics");
+  }
+
   const sortedStudents = useMemo(() => {
     if (!filteredStudents || !Array.isArray(filteredStudents)) return [];
     if (!sortConfig.key || !sortConfig.direction) return filteredStudents;
@@ -620,6 +626,33 @@ const Dash = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+   <Button
+  variant="outlined"
+  startIcon={<AddIcon />}
+  onClick={() => nav_page()}
+  sx={{
+    borderColor: "#3b82f6",
+    color: "#3b82f6",
+    padding: "12px 28px",
+    borderRadius: "50px", // pill shape
+    position: "absolute",
+    top: "90px",
+    right: "38px",
+    fontSize: "14px",
+    fontWeight: "600",
+    textTransform: "none",
+    "&:hover": {
+      backgroundColor: "#3b82f6",
+      color: "white",
+      borderColor: "#2563eb",
+    },
+  }}
+>
+  View Analytics
+</Button>
+
+
+
       <div
         style={{
           ...styles.header,
