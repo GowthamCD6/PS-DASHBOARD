@@ -23,22 +23,14 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 
-const availableSkills = [
-  "JavaScript",
-  "Python",
-  "React",
-  "Java",
-  "C++",
-  "Node.js",
-  "Angular",
-  "Vue.js",
-  "Networking",
-];
-const deptMap = { 1: "CSE", 2: "IT", 3: "ECE", 4: "EEE", 5: "MECH" };
+// Year mapping
 const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
 
 const MenteeDashboard = () => {
   const [mentees, setMentees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]); // for dynamic skills
+  const [roles, setRoles] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -59,13 +51,8 @@ const MenteeDashboard = () => {
     type: "all",
     value: "",
   });
-  const [skillColumns, setSkillColumns] = useState([
-    { id: "skill1", skill: "JavaScript", levelFilter: "" },
-    { id: "skill2", skill: "Python", levelFilter: "" },
-  ]);
+  const [skillColumns, setSkillColumns] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
-
-  // MUI Popover states
   const [cumulativeAnchorEl, setCumulativeAnchorEl] = useState(null);
   const [cumulativePopoverFilter, setCumulativePopoverFilter] = useState({
     type: "all",
@@ -81,53 +68,98 @@ const MenteeDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
-  // Fetch mentees from API
+  // Load departments, courses, and roles for dropdowns/skills
+  useEffect(() => {
+    const fetchMeta = async () => {
+      try {
+        const [deptRes, courseRes, roleRes] = await Promise.all([
+          axios.get("http://localhost:3000/getDept", { withCredentials: true }),
+          axios.get("http://localhost:3000/getcourse", { withCredentials: true }),
+          axios.get("http://localhost:3000/getRoles", { withCredentials: true }),
+        ]);
+        if (Array.isArray(deptRes.data)) {
+          setDepartments(deptRes.data.map((d) => d.dept));
+        }
+        if (Array.isArray(courseRes.data)) {
+          setCourses(courseRes.data.map((c) => c.name));
+          // Set default skill columns to first two, if not already set
+          setSkillColumns((cols) =>
+            cols.length > 0
+              ? cols
+              : courseRes.data.slice(0, 2).map((c, idx) => ({
+                  id: `skill${idx + 1}`,
+                  skill: c.name,
+                  levelFilter: "",
+                }))
+          );
+        }
+        if (Array.isArray(roleRes.data)) {
+          setRoles(roleRes.data.map((r) => r.name));
+        }
+      } catch (e) {
+        setSnackbar({
+          open: true,
+          message: "Meta data load failed",
+          severity: "error",
+        });
+      }
+    };
+    fetchMeta();
+  }, []);
+
+  // Fetch mentee data (API structure as given)
   useEffect(() => {
     const fetchMentees = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/student_faculty/get_relations",{
-          withCredentials:true
-        }
-        );
-        const studentsData = response.data || [];
-
-        // Transform API data to match the expected format
-        const menteesList = studentsData.map((student, idx) => ({
-          id: student.id || student.student_id || idx,
-          name: student.name || student.student_name || `Student ${idx + 1}`,
-          regNo:
-            student.reg_no ||
-            student.registration_number ||
-            `REG${String(idx + 1).padStart(3, "0")}`,
-          department: student.department || "CSE",
-          year: student.year || "III",
-          totalLevels: student.course_total_levels ?? student.totalLevels ?? 0,
-          completedLevels:
-            student.completedLevels ?? Math.floor(Math.random() * 10) + 1,
-          cumulativeRewards: student.cumulativeRewards ?? 800 + 100 * idx,
-          currentSemRewards: student.currentSemRewards ?? 120 + 20 * idx,
-          skills: student.skills || {
-            JavaScript: { level: 4 + idx, daysAgo: 3 + idx },
-            Python: { level: 3 + idx, daysAgo: 6 + idx },
-            React: { level: 5 + idx, daysAgo: 2 * idx },
-          },
-        }));
-        setMentees(menteesList);
+        const res = await axios.get("http://localhost:3000/student/user_data/1", {
+          withCredentials: true,
+        });
+        const menteesArr = Array.isArray(res.data) ? res.data : [];
+        // Build data for table (skills by course_name)
+        const processed = menteesArr.map((student, idx) => {
+          const skillsObj = {};
+          if (student.courses && Array.isArray(student.courses)) {
+            student.courses.forEach((course) => {
+              skillsObj[course.course_name] = {
+                level: Number(course.course_completed_levels) || 0,
+                daysAgo:
+                  course.gap_days !== undefined && course.gap_days !== null
+                    ? Number(course.gap_days)
+                    : 999,
+                attempted: true,
+              };
+            });
+          }
+          // Only store attempted courses!
+          return {
+            id: student.user_id || idx,
+            name: student.name,
+            regNo: student.user_id || `REG${String(idx + 1).padStart(3, "0")}`,
+            department: student.dept,
+            year: yearMap[student.year] || "I",
+            totalLevels: student.total_levels ?? 0,
+            completedLevels: student.total_completed_levels ?? 0,
+            cumulativeRewards: student.cumulative_rewards ?? 0,
+            currentSemRewards: student.current_semester_rewards ?? 0,
+            role: (student.role || student.type || "Student"),
+            skills: skillsObj,
+          };
+        });
+        setMentees(processed);
       } catch (err) {
-        console.error("Error fetching mentees:", err);
-        setMentees([]);
         setSnackbar({
           open: true,
           message: "Failed to load mentees",
           severity: "error",
         });
+        setMentees([]);
       }
     };
     fetchMentees();
-  }, []);
+    // eslint-disable-next-line
+  }, [courses.length]);
 
-  const handleCumulativeOpen = (event) =>
-    setCumulativeAnchorEl(event.currentTarget);
+  const handleCumulativeOpen = (event) => setCumulativeAnchorEl(event.currentTarget);
   const handleCumulativeClose = () => setCumulativeAnchorEl(null);
   const handleCumulativeApply = () => {
     setCumulativeFilter({
@@ -141,8 +173,7 @@ const MenteeDashboard = () => {
     setCumulativeFilter({ type: "all", value: "" });
     handleCumulativeClose();
   };
-  const handleCurrentSemOpen = (event) =>
-    setCurrentSemAnchorEl(event.currentTarget);
+  const handleCurrentSemOpen = (event) => setCurrentSemAnchorEl(event.currentTarget);
   const handleCurrentSemClose = () => setCurrentSemAnchorEl(null);
   const handleCurrentSemApply = () => {
     setCurrentSemFilter({
@@ -160,10 +191,8 @@ const MenteeDashboard = () => {
   const handleNameClose = () => setNameAnchorEl(null);
   const handleRegNoOpen = (event) => setRegNoAnchorEl(event.currentTarget);
   const handleRegNoClose = () => setRegNoAnchorEl(null);
-  const handleSnackbarClose = () =>
-    setSnackbar((prev) => ({ ...prev, open: false }));
+  const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
-  // ... Filter, sort, and style helpers as in previous code ...
   const getDaysColor = (days) => {
     if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" };
     if (days <= 10) return { bg: "#fed7aa", text: "#ea580c" };
@@ -174,7 +203,12 @@ const MenteeDashboard = () => {
     if (!mentees || !Array.isArray(mentees)) return [];
     return mentees.filter((mentee) => {
       if (!mentee || !mentee.skills) return false;
-      if (filters.role !== "all" && filters.role !== "mentee") return false;
+      if (
+        filters.role !== "all" &&
+        mentee.role &&
+        mentee.role.toLowerCase() !== filters.role.toLowerCase()
+      )
+        return false;
       if (filters.year !== "all" && mentee.year !== filters.year) return false;
       if (
         filters.department !== "all" &&
@@ -228,10 +262,12 @@ const MenteeDashboard = () => {
           return false;
       }
       for (const skillCol of skillColumns) {
-        if (skillCol.levelFilter) {
+        if (skillCol.levelFilter !== "" && skillCol.levelFilter !== null && skillCol.levelFilter !== undefined) {
           const skillData = mentee.skills && mentee.skills[skillCol.skill];
-          const menteeLevel = skillData ? skillData.level : 0;
-          if (menteeLevel !== parseInt(skillCol.levelFilter)) return false;
+          const menteeLevel = skillData ? skillData.level : undefined;
+          // Only filter if skill was attempted (exists in mentee.skills)
+          if (skillData && menteeLevel !== parseInt(skillCol.levelFilter)) return false;
+          // If skill not attempted, don't filter this mentee out
         }
       }
       return true;
@@ -270,10 +306,13 @@ const MenteeDashboard = () => {
         const skillId = sortConfig.key.replace("skill_", "");
         const skillCol = skillColumns.find((col) => col.id === skillId);
         if (skillCol) {
-          aVal = a.skills[skillCol.skill]?.level || 0;
-          bVal = b.skills[skillCol.skill]?.level || 0;
+          aVal = a.skills[skillCol.skill]?.level ?? undefined;
+          bVal = b.skills[skillCol.skill]?.level ?? undefined;
         }
       }
+      // undefined sorts last
+      if (aVal === undefined && bVal !== undefined) return 1;
+      if (aVal !== undefined && bVal === undefined) return -1;
       if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
       if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
@@ -299,7 +338,7 @@ const MenteeDashboard = () => {
     const newId = `skill${skillColumns.length + 1}`;
     setSkillColumns([
       ...skillColumns,
-      { id: newId, skill: "", levelFilter: "" },
+      { id: newId, skill: courses[0] || "", levelFilter: "" },
     ]);
   };
 
@@ -509,7 +548,11 @@ const MenteeDashboard = () => {
                 }}
               >
                 <MenuItem value="all">All Roles</MenuItem>
-                <MenuItem value="mentee">Mentee</MenuItem>
+                {roles.map((role) => (
+                  <MenuItem value={role.toLowerCase()} key={role}>
+                    {role}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
             <FormControl sx={{ minWidth: 140 }}>
@@ -557,11 +600,11 @@ const MenteeDashboard = () => {
                 }}
               >
                 <MenuItem value="all">All Departments</MenuItem>
-                <MenuItem value="CSE">CSE</MenuItem>
-                <MenuItem value="IT">IT</MenuItem>
-                <MenuItem value="ECE">ECE</MenuItem>
-                <MenuItem value="EEE">EEE</MenuItem>
-                <MenuItem value="MECH">MECH</MenuItem>
+                {departments.map((dept) => (
+                  <MenuItem value={dept} key={dept}>
+                    {dept}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </div>
@@ -830,7 +873,7 @@ const MenteeDashboard = () => {
                         <MenuItem value="" disabled>
                           <em>Select Skill</em>
                         </MenuItem>
-                        {availableSkills.map((skill) => (
+                        {courses.map((skill) => (
                           <MenuItem key={skill} value={skill}>
                             {skill}
                           </MenuItem>
@@ -954,7 +997,13 @@ const MenteeDashboard = () => {
                   <td style={{ ...styles.td, textAlign: "left" }}>
                     {mentee.regNo}
                   </td>
-                  <td style={{ ...styles.td, ...styles.rewardPoints, textAlign: "center" }}>
+                  <td
+                    style={{
+                      ...styles.td,
+                      ...styles.rewardPoints,
+                      textAlign: "center",
+                    }}
+                  >
                     {mentee.cumulativeRewards}
                   </td>
                   <td
@@ -970,20 +1019,21 @@ const MenteeDashboard = () => {
                   {skillColumns.map((skillCol) => {
                     const skillData =
                       mentee.skills && mentee.skills[skillCol.skill];
+                    // If student hasn't attempted, render empty cell
                     if (!skillData)
                       return (
                         <td
                           key={skillCol.id}
                           style={{ ...styles.td, color: "#9ca3af" }}
                         >
-                          -
+                          {/* nothing */}
                         </td>
                       );
                     return (
                       <td key={skillCol.id} style={styles.td}>
                         <div style={styles.skillCell}>
                           <span style={{ ...styles.skillLevelText }}>
-                            {`Level ${skillData.level}`}
+                            {`Level ${skillData.level ?? 0}`}
                           </span>
                           <span
                             style={{
@@ -1002,7 +1052,7 @@ const MenteeDashboard = () => {
                           >
                             {skillData.daysAgo === 999
                               ? "999d ago"
-                              : `${skillData.daysAgo}d ago`}
+                              : `${skillData.daysAgo ?? 0}d ago`}
                           </span>
                         </div>
                       </td>
