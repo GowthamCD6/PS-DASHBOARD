@@ -294,3 +294,30 @@ exports.getDept = (req,res,next) => {
     next(error);
   }
 }
+
+exports.getMentors = (req,res,next) => {
+  try{
+     const {id} = req.params;
+     if(!id){
+       let sql = "select t1.name as name,t2.name as role from master_user t1 join master_role t2 on t1.role = t2.id where t1.role = 2 or t1.role = 4";
+       db.query(sql,(error,result) => {
+        if(error || result.length == 0){
+          return next(error || createError.NotFound());
+        }
+        return res.send(result);
+      })
+    }
+    else{
+      let sql1 = "select count(*) as no_of_mentees from master_relationship_mapping where user = ? and status = 1";
+      db.query(sql1,[id],(error,result) => {
+        if(error || result.length == 0){
+          return next(error || createError.NotFound());
+        }
+        return res.send(result);
+      })
+    }
+  }
+  catch(error){
+    next(error);
+  }
+}
