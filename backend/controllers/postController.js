@@ -3,17 +3,17 @@ const createError = require("http-errors");
 
 exports.assign_mentor = (req,res,next) => {
     try{
-      const{faculty_id, student_id, status, role_id} = req.params;
-      if(!faculty_id.trim() || !student_id.trim() || !role_id.trim() || !status.trim())return next(createError.BadRequest("id is invalid!"));
+      const{faculty_id, student_id, status, role_id, assigned_by} = req.params;
+      if(!faculty_id.trim() || !student_id.trim() || !role_id.trim() || !status.trim() || !assigned_by.trim())return next(createError.BadRequest("id is invalid!"));
       let allowedRoles = ['1','3'];
-      if(!allowedRoles.includes(role_id))return createError.BadRequest('Invalid status!');
+      if(!allowedRoles.includes(role_id))return next(createError.BadRequest('Invalid status!'));
       // check whether the id is a teacher's id
       let isfaculty = 'select type from master_user where id = ?';
       db.query(isfaculty,[faculty_id],(error,result) => {
         if(error || result.length == 0){
             return next(error || createError.BadRequest('id type not foud'))
         }
-        if(result[0].type != 'teacher')return next("Invalid id");
+        if(result[0].type != 'teacher')return next(createError.BadRequest("Invalid faculty id"));
         // check if the faculty is already a mentor of that student
         let checksql = "select relationship from master_relationship_mapping where user = ? and relation_user = ?";
         db.query(checksql,[faculty_id, student_id],(error1, result1) => {
@@ -37,8 +37,8 @@ exports.assign_mentor = (req,res,next) => {
             }
             else{
                 // assign the faculty as the temp || permanent based on the status
-                let assignsql = "insert into master_relationship_mapping (relationship, user, relation_user, status) values(?, ?, ?, ?);"
-                db.query(assignsql,[role_id, faculty_id, student_id, status], (error3,result3) => {
+                let assignsql = "insert into master_relationship_mapping (relationship, user, relation_user, status, assigned_by) values(?, ?, ?, ?, ?);"
+                db.query(assignsql,[role_id, faculty_id, student_id, status, assigned_by], (error3,result3) => {
                 if(error3)return next(error3);
                     return res.send('faculty assgined successfully!');
                 })

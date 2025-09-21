@@ -77,12 +77,14 @@ CREATE TABLE s_register (
         user INT NOT NULL, -- user in master_user table (1)
         relation_user INT NOT NULL, -- user in master_user table (2) => if (1,2) -> 1 mentors 2
         status enum('0','1') not null,
+        assigned_by INT,
         FOREIGN KEY (user) REFERENCES master_user(id)
             ON DELETE CASCADE 
             ON UPDATE CASCADE,
         FOREIGN KEY (relation_user) REFERENCES master_user(id)
             ON DELETE CASCADE 
             ON UPDATE CASCADE
+        FOREIGN KEY (assigned_by) REFERENCES master_user(id);
     );
 
 CREATE TABLE master_relationships (
