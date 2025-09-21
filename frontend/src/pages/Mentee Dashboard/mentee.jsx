@@ -1,13 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
-import TotalLevelsModal from "../Modal/Total";
-import CompletedLevelsModal from "../Modal/Completed";
-import { useNavigate } from "react-router-dom";
-import {
-  ChevronDown,
-  ArrowUp,
-  ArrowDown
-} from "lucide-react";
+import TotalLevelsModal from "../../Modal/Total";
+import CompletedLevelsModal from "../../Modal/Completed";
+import { ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   TableCell,
   Box,
@@ -28,31 +23,24 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
 
+// Year mapping
 const yearMap = { 1: "I", 2: "II", 3: "III", 4: "IV" };
 
-const normalizeSkillName = (name) => name;
-
-const Dash = () => {
-  const [students, setStudents] = useState([]);
+const MenteeDashboard = () => {
+  const [mentees, setMentees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]); // for dynamic skills
+  const [roles, setRoles] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "info",
   });
-
-  // Dynamic dropdowns
-  const [availableSkills, setAvailableSkills] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const navigate = useNavigate();
-
-  // Filter states
   const [filters, setFilters] = useState({
     role: "all",
     year: "all",
     department: "all",
   });
-
   const [nameSearch, setNameSearch] = useState("");
   const [regNoSearch, setRegNoSearch] = useState("");
   const [cumulativeFilter, setCumulativeFilter] = useState({
@@ -63,19 +51,8 @@ const Dash = () => {
     type: "all",
     value: "",
   });
-
-  // Skill columns are dynamic
-  const [skillColumns, setSkillColumns] = useState([
-    { id: "skill1", skill: "", levelFilter: "" },
-    { id: "skill2", skill: "", levelFilter: "" },
-  ]);
-
+  const [skillColumns, setSkillColumns] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
-  const [showNameSearch, setShowNameSearch] = useState(false);
-  const [showRegNoSearch, setShowRegNoSearch] = useState(false);
-  const [showCumulativeFilter, setShowCumulativeFilter] = useState(false);
-  const [showCurrentSemFilter, setShowCurrentSemFilter] = useState(false);
-
   const [cumulativeAnchorEl, setCumulativeAnchorEl] = useState(null);
   const [cumulativePopoverFilter, setCumulativePopoverFilter] = useState({
     type: "all",
@@ -91,166 +68,96 @@ const Dash = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState(false);
 
-  // Load all backend data on mount
+  // Load departments, courses, and roles for dropdowns/skills
   useEffect(() => {
-    const fetchDropdownsAndUsers = async () => {
+    const fetchMeta = async () => {
       try {
-        // Parallel fetch for dropdowns
-        const [coursesRes, deptsRes, rolesRes, usersRes] = await Promise.all([
-          axios.get("http://localhost:3000/getcourse", { withCredentials: true }),
+        const [deptRes, courseRes, roleRes] = await Promise.all([
           axios.get("http://localhost:3000/getDept", { withCredentials: true }),
+          axios.get("http://localhost:3000/getcourse", { withCredentials: true }),
           axios.get("http://localhost:3000/getRoles", { withCredentials: true }),
-          axios.get("http://localhost:3000/student/get_all_users", { withCredentials: true }),
         ]);
-
-        // Skills = course names
-        const skills = Array.isArray(coursesRes.data)
-          ? coursesRes.data.map((c) => c.name)
-          : [];
-        setAvailableSkills(skills);
-
-        // Departments = dept field
-        const depts = Array.isArray(deptsRes.data)
-          ? deptsRes.data.map((d) => d.dept)
-          : [];
-        setDepartments(depts);
-
-        // Roles = name field, lowercased for filter
-        const rolesList = Array.isArray(rolesRes.data)
-          ? rolesRes.data.map((r) => r.name)
-          : [];
-        setRoles(rolesList);
-
-        // Students
-        const userArr = Array.isArray(usersRes.data) ? usersRes.data : [];
-        // Set default skills in columns if not yet set
-        setSkillColumns((prevCols) => {
-          // If empty, prefill with first 2 skills if available
-          if (
-            prevCols.filter((col) => col.skill).length === 0 &&
-            skills.length >= 2
-          ) {
-            return [
-              { id: "skill1", skill: skills[0], levelFilter: "" },
-              { id: "skill2", skill: skills[1], levelFilter: "" },
-            ];
-          }
-          // If some columns exist but have empty skill, fill from skills
-          return prevCols.map((col, idx) => ({
-            ...col,
-            skill: col.skill || skills[idx] || "",
-          }));
+        if (Array.isArray(deptRes.data)) {
+          setDepartments(deptRes.data.map((d) => d.dept));
+        }
+        if (Array.isArray(courseRes.data)) {
+          setCourses(courseRes.data.map((c) => c.name));
+          // Set default skill columns to first two, if not already set
+          setSkillColumns((cols) =>
+            cols.length > 0
+              ? cols
+              : courseRes.data.slice(0, 2).map((c, idx) => ({
+                  id: `skill${idx + 1}`,
+                  skill: c.name,
+                  levelFilter: "",
+                }))
+          );
+        }
+        if (Array.isArray(roleRes.data)) {
+          setRoles(roleRes.data.map((r) => r.name));
+        }
+      } catch (e) {
+        setSnackbar({
+          open: true,
+          message: "Meta data load failed",
+          severity: "error",
         });
+      }
+    };
+    fetchMeta();
+  }, []);
 
-        // Transform students for table
-        const transformed = userArr.map((student, idx) => {
-          // Build skills map with all availableSkills (from course_name in backend)
-          const skillsMap = {};
-          if (Array.isArray(student.courses)) {
+  // Fetch mentee data (API structure as given)
+  useEffect(() => {
+    const fetchMentees = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/student/user_data/1", {
+          withCredentials: true,
+        });
+        const menteesArr = Array.isArray(res.data) ? res.data : [];
+        // Build data for table (skills by course_name)
+        const processed = menteesArr.map((student, idx) => {
+          const skillsObj = {};
+          if (student.courses && Array.isArray(student.courses)) {
             student.courses.forEach((course) => {
-              // Map by course_name (not generic skill name)
-              skillsMap[normalizeSkillName(course.course_name)] = {
+              skillsObj[course.course_name] = {
                 level: Number(course.course_completed_levels) || 0,
                 daysAgo:
                   course.gap_days !== undefined && course.gap_days !== null
                     ? Number(course.gap_days)
                     : 999,
-                totalLevels: Number(course.course_total_levels) || 0,
-                completedLevels: Number(course.course_completed_levels) || 0,
+                attempted: true,
               };
             });
           }
-          // Fill missing skills as 0
-          skills.forEach((skill) => {
-            if (!skillsMap[skill]) {
-              skillsMap[skill] = {
-                level: 0,
-                daysAgo: 999,
-                totalLevels: 0,
-                completedLevels: 0,
-              };
-            }
-          });
+          // Only store attempted courses!
           return {
             id: student.user_id || idx,
-            name: student.name || "Unknown Name",
-            regNo: student.user_id || `REG${idx + 1}`,
-            department: student.dept || "", // dynamic
-            year:
-              typeof student.year === "number"
-                ? yearMap[student.year] || "I"
-                : yearMap[parseInt(student.year)] || student.year || "I",
-            completedLevels:
-              Number(student.total_completed_levels) ||
-              Number(student.completedLevels) ||
-              0,
-            totalLevels:
-              Number(student.total_levels) ||
-              Number(student.course_total_levels) ||
-              Number(student.totalLevels) ||
-              0,
-            cumulativeRewards:
-              Number(student.cumulative_rewards) ||
-              Number(student.cumulativeRewards) ||
-              0,
-            currentSemRewards:
-              Number(student.current_semester_rewards) ||
-              Number(student.currentSemRewards) ||
-              0,
-            skills: skillsMap,
-            role: (student.role || student.type || "Student").toLowerCase(), // normalize
+            name: student.name,
+            regNo: student.user_id || `REG${String(idx + 1).padStart(3, "0")}`,
+            department: student.dept,
+            year: yearMap[student.year] || "I",
+            totalLevels: student.total_levels ?? 0,
+            completedLevels: student.total_completed_levels ?? 0,
+            cumulativeRewards: student.cumulative_rewards ?? 0,
+            currentSemRewards: student.current_semester_rewards ?? 0,
+            role: (student.role || student.type || "Student"),
+            skills: skillsObj,
           };
         });
-        setStudents(transformed);
-      } catch (error) {
+        setMentees(processed);
+      } catch (err) {
         setSnackbar({
           open: true,
-          message: "Error fetching dashboard data from API",
+          message: "Failed to load mentees",
           severity: "error",
         });
+        setMentees([]);
       }
     };
-    fetchDropdownsAndUsers();
+    fetchMentees();
     // eslint-disable-next-line
-  }, []);
-
-  // Update students when skillColumns change (for new added columns)
-  useEffect(() => {
-    // No need to refetch, just ensure each student's skills have all current skillColumns
-    setStudents((prev) =>
-      prev.map((student) => {
-        let newSkills = { ...student.skills };
-        skillColumns.forEach((col) => {
-          if (col.skill && !(col.skill in newSkills)) {
-            newSkills[col.skill] = {
-              level: 0,
-              daysAgo: 999,
-              totalLevels: 0,
-              completedLevels: 0,
-            };
-          }
-        });
-        return { ...student, skills: newSkills };
-      })
-    );
-    // eslint-disable-next-line
-  }, [skillColumns]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".filter-popup")) {
-        setShowNameSearch(false);
-        setShowRegNoSearch(false);
-        setShowCumulativeFilter(false);
-        setShowCurrentSemFilter(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  }, [courses.length]);
 
   const handleCumulativeOpen = (event) => setCumulativeAnchorEl(event.currentTarget);
   const handleCumulativeClose = () => setCumulativeAnchorEl(null);
@@ -266,7 +173,6 @@ const Dash = () => {
     setCumulativeFilter({ type: "all", value: "" });
     handleCumulativeClose();
   };
-
   const handleCurrentSemOpen = (event) => setCurrentSemAnchorEl(event.currentTarget);
   const handleCurrentSemClose = () => setCurrentSemAnchorEl(null);
   const handleCurrentSemApply = () => {
@@ -281,24 +187,11 @@ const Dash = () => {
     setCurrentSemFilter({ type: "all", value: "" });
     handleCurrentSemClose();
   };
-
   const handleNameOpen = (event) => setNameAnchorEl(event.currentTarget);
   const handleNameClose = () => setNameAnchorEl(null);
-
   const handleRegNoOpen = (event) => setRegNoAnchorEl(event.currentTarget);
   const handleRegNoClose = () => setRegNoAnchorEl(null);
-
-  const handleSnackbarClose = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
-
-  const getLevelBadgeColor = (level) => {
-    if (level >= 9) return "#059669";
-    if (level >= 7) return "#16a34a";
-    if (level >= 5) return "#ca8a04";
-    if (level >= 3) return "#ea580c";
-    return "#dc2626";
-  };
+  const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
   const getDaysColor = (days) => {
     if (days <= 5) return { bg: "#dcfce7", text: "#22c55e" };
@@ -306,81 +199,81 @@ const Dash = () => {
     return { bg: "#fecaca", text: "#dc2626" };
   };
 
-  const filteredStudents = useMemo(() => {
-    if (!students || !Array.isArray(students)) return [];
-
-    return students.filter((student) => {
-      if (!student || !student.skills) return false;
-
-      if (filters.role !== "all" && student.role?.toLowerCase() !== filters.role.toLowerCase()) return false;
-      if (filters.year !== "all" && student.year !== filters.year) return false;
+  const filteredMentees = useMemo(() => {
+    if (!mentees || !Array.isArray(mentees)) return [];
+    return mentees.filter((mentee) => {
+      if (!mentee || !mentee.skills) return false;
       if (
-        filters.department !== "all" &&
-        student.department !== filters.department
+        filters.role !== "all" &&
+        mentee.role &&
+        mentee.role.toLowerCase() !== filters.role.toLowerCase()
       )
         return false;
-
+      if (filters.year !== "all" && mentee.year !== filters.year) return false;
+      if (
+        filters.department !== "all" &&
+        mentee.department !== filters.department
+      )
+        return false;
       if (
         nameSearch &&
-        !student.name.toLowerCase().includes(nameSearch.toLowerCase())
+        !mentee.name.toLowerCase().includes(nameSearch.toLowerCase())
       )
         return false;
       if (
         regNoSearch &&
-        !student.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
+        !mentee.regNo.toLowerCase().includes(regNoSearch.toLowerCase())
       )
         return false;
-
       if (cumulativeFilter.type !== "all" && cumulativeFilter.value) {
         const value = parseInt(cumulativeFilter.value);
         if (
           cumulativeFilter.type === "equal" &&
-          student.cumulativeRewards !== value
+          mentee.cumulativeRewards !== value
         )
           return false;
         if (
           cumulativeFilter.type === "greater" &&
-          student.cumulativeRewards <= value
+          mentee.cumulativeRewards <= value
         )
           return false;
         if (
           cumulativeFilter.type === "less" &&
-          student.cumulativeRewards >= value
+          mentee.cumulativeRewards >= value
         )
           return false;
       }
-
       if (currentSemFilter.type !== "all" && currentSemFilter.value) {
         const value = parseInt(currentSemFilter.value);
         if (
           currentSemFilter.type === "equal" &&
-          student.currentSemRewards !== value
+          mentee.currentSemRewards !== value
         )
           return false;
         if (
           currentSemFilter.type === "greater" &&
-          student.currentSemRewards <= value
+          mentee.currentSemRewards <= value
         )
           return false;
         if (
           currentSemFilter.type === "less" &&
-          student.currentSemRewards >= value
+          mentee.currentSemRewards >= value
         )
           return false;
       }
-
       for (const skillCol of skillColumns) {
         if (skillCol.levelFilter !== "" && skillCol.levelFilter !== null && skillCol.levelFilter !== undefined) {
-          const skillData = student.skills && student.skills[skillCol.skill];
-          const studentLevel = skillData ? skillData.level : 0;
-          if (studentLevel !== parseInt(skillCol.levelFilter)) return false;
+          const skillData = mentee.skills && mentee.skills[skillCol.skill];
+          const menteeLevel = skillData ? skillData.level : undefined;
+          // Only filter if skill was attempted (exists in mentee.skills)
+          if (skillData && menteeLevel !== parseInt(skillCol.levelFilter)) return false;
+          // If skill not attempted, don't filter this mentee out
         }
       }
-
       return true;
     });
   }, [
-    students,
+    mentees,
     filters,
     nameSearch,
     regNoSearch,
@@ -389,17 +282,11 @@ const Dash = () => {
     skillColumns,
   ]);
 
-  const nav_page = () => {
-    navigate("/view-analytics");
-  }
-
-  const sortedStudents = useMemo(() => {
-    if (!filteredStudents || !Array.isArray(filteredStudents)) return [];
-    if (!sortConfig.key || !sortConfig.direction) return filteredStudents;
-
-    return [...filteredStudents].sort((a, b) => {
+  const sortedMentees = useMemo(() => {
+    if (!filteredMentees || !Array.isArray(filteredMentees)) return [];
+    if (!sortConfig.key || !sortConfig.direction) return filteredMentees;
+    return [...filteredMentees].sort((a, b) => {
       let aVal, bVal;
-
       if (sortConfig.key === "completedLevels") {
         aVal = a.completedLevels;
         bVal = b.completedLevels;
@@ -419,16 +306,18 @@ const Dash = () => {
         const skillId = sortConfig.key.replace("skill_", "");
         const skillCol = skillColumns.find((col) => col.id === skillId);
         if (skillCol) {
-          aVal = a.skills[skillCol.skill]?.level || 0;
-          bVal = b.skills[skillCol.skill]?.level || 0;
+          aVal = a.skills[skillCol.skill]?.level ?? undefined;
+          bVal = b.skills[skillCol.skill]?.level ?? undefined;
         }
       }
-
+      // undefined sorts last
+      if (aVal === undefined && bVal !== undefined) return 1;
+      if (aVal !== undefined && bVal === undefined) return -1;
       if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
       if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [filteredStudents, sortConfig, skillColumns]);
+  }, [filteredMentees, sortConfig, skillColumns]);
 
   const handleSort = (key) => {
     setSortConfig((prev) => {
@@ -449,7 +338,7 @@ const Dash = () => {
     const newId = `skill${skillColumns.length + 1}`;
     setSkillColumns([
       ...skillColumns,
-      { id: newId, skill: availableSkills[0] || "", levelFilter: "" },
+      { id: newId, skill: courses[0] || "", levelFilter: "" },
     ]);
   };
 
@@ -495,7 +384,9 @@ const Dash = () => {
       backgroundColor: "#f6f7fb",
       fontFamily:
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      display: "block",
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
     },
     header: {
       padding: "20px 35px",
@@ -508,8 +399,8 @@ const Dash = () => {
       fontWeight: "700",
       color: "#475569",
       margin: "0 0 8px 0",
+      marginTop: "11px",
       letterSpacing: "-0.025em",
-      marginTop: '13px', 
       lineHeight: "1.1",
     },
     filtersContainer: {
@@ -539,9 +430,9 @@ const Dash = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       border: "1px solid #e2e8f0",
-      overflow: "hidden", 
+      overflow: "hidden",
       boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-      margin: "24px auto 0",
+      margin: "24px auto",
       width: "97.5%",
     },
     tableWrapper: {
@@ -590,7 +481,6 @@ const Dash = () => {
       fontSize: "14px",
       fontWeight: "600",
       color: "#3b82f6",
-      textAlign: "center",
     },
     skillCell: {
       display: "flex",
@@ -599,6 +489,7 @@ const Dash = () => {
       alignItems: "center",
       width: "100%",
       gap: "12px",
+      marginTop: "1px",
     },
     skillLevelText: {
       fontSize: "14px",
@@ -626,33 +517,6 @@ const Dash = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-   <Button
-  variant="outlined"
-  startIcon={<AddIcon />}
-  onClick={() => nav_page()}
-  sx={{
-    borderColor: "#3b82f6",
-    color: "#3b82f6",
-    padding: "12px 28px",
-    borderRadius: "50px", // pill shape
-    position: "absolute",
-    top: "90px",
-    right: "38px",
-    fontSize: "14px",
-    fontWeight: "600",
-    textTransform: "none",
-    "&:hover": {
-      backgroundColor: "#3b82f6",
-      color: "white",
-      borderColor: "#2563eb",
-    },
-  }}
->
-  View Analytics
-</Button>
-
-
-
       <div
         style={{
           ...styles.header,
@@ -661,7 +525,7 @@ const Dash = () => {
           marginBottom: "-22px",
         }}
       >
-        <h3 style={styles.title}>Student Skills Dashboard</h3>
+        <h3 style={styles.title}>Mentees Skills Dashboard</h3>
       </div>
       <div style={styles.filtersContainer}>
         <div style={styles.filtersRow}>
@@ -685,7 +549,7 @@ const Dash = () => {
               >
                 <MenuItem value="all">All Roles</MenuItem>
                 {roles.map((role) => (
-                  <MenuItem key={role.toLowerCase()} value={role.toLowerCase()}>
+                  <MenuItem value={role.toLowerCase()} key={role}>
                     {role}
                   </MenuItem>
                 ))}
@@ -737,7 +601,9 @@ const Dash = () => {
               >
                 <MenuItem value="all">All Departments</MenuItem>
                 {departments.map((dept) => (
-                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                  <MenuItem value={dept} key={dept}>
+                    {dept}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -768,40 +634,50 @@ const Dash = () => {
           <table style={styles.table}>
             <thead style={styles.thead}>
               <tr>
-                <TableCell sx={{
-                  fontWeight: "600",
-                  backgroundColor: "#f8fafc",
-                  padding: "16px 24px",
-                  fontSize: "14px",
-                  color: "#475569",
-                  textTransform: "uppercase",
-                  width: "120px",
-                }}>
-                  <Box sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    textAlign: "center",
-                  }}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 24px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    width: "120px",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                    }}
+                  >
                     <span>
-                      Total <br /> Levels
+                      Total
+                      <br />
+                      Levels
                     </span>
                   </Box>
                 </TableCell>
-                <TableCell sx={{
-                  fontWeight: "600",
-                  backgroundColor: "#f8fafc",
-                  padding: "16px 32px",
-                  fontSize: "14px",
-                  color: "#475569",
-                  textTransform: "uppercase",
-                  position: "relative",
-                }}>
-                  <Box sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <span>Completed</span>
                   </Box>
                   <IconButton
@@ -817,21 +693,25 @@ const Dash = () => {
                     {getSortIcon("completedLevels")}
                   </IconButton>
                 </TableCell>
-                <TableCell sx={{
-                  fontWeight: "600",
-                  backgroundColor: "#f8fafc",
-                  padding: "16px 32px",
-                  fontSize: "14px",
-                  color: "#475569",
-                  textTransform: "uppercase",
-                  position: "relative",
-                  textAlign: "center",
-                }}>
-                  <Box sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                    textAlign: "center",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <span>Name</span>
                   </Box>
                   <IconButton
@@ -840,7 +720,7 @@ const Dash = () => {
                     sx={{
                       position: "absolute",
                       top: "50%",
-                      right: "25px",
+                      right: "5px",
                       transform: "translateY(-50%)",
                     }}
                   >
@@ -864,20 +744,24 @@ const Dash = () => {
                     </Box>
                   </Popover>
                 </TableCell>
-                <TableCell sx={{
-                  fontWeight: "600",
-                  backgroundColor: "#f8fafc",
-                  padding: "16px 32px",
-                  fontSize: "14px",
-                  color: "#475569",
-                  textTransform: "uppercase",
-                  position: "relative",
-                }}>
-                  <Box sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <span>Reg No</span>
                   </Box>
                   <IconButton
@@ -910,179 +794,49 @@ const Dash = () => {
                     </Box>
                   </Popover>
                 </TableCell>
-                <TableCell sx={{
-                  fontWeight: "600",
-                  backgroundColor: "#f8fafc",
-                  padding: "16px 32px",
-                  fontSize: "14px",
-                  color: "#475569",
-                  textTransform: "uppercase",
-                  position: "relative",
-                }}>
-                  <Box sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
                     <span>Cumulative</span>
                     <span>Rewards</span>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleCumulativeOpen}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: "600",
+                    backgroundColor: "#f8fafc",
+                    padding: "16px 32px",
+                    fontSize: "14px",
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    position: "relative",
+                  }}
+                >
+                  <Box
                     sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "-5px",
-                      transform: "translateY(-50%)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                     }}
                   >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
-                  <Popover
-                    open={Boolean(cumulativeAnchorEl)}
-                    anchorEl={cumulativeAnchorEl}
-                    onClose={handleCumulativeClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  >
-                    <Box
-                      sx={{
-                        p: 2,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 1,
-                      }}
-                    >
-                      <Select
-                        size="small"
-                        value={cumulativePopoverFilter.type}
-                        onChange={(e) =>
-                          setCumulativePopoverFilter((prev) => ({
-                            ...prev,
-                            type: e.target.value,
-                          }))
-                        }
-                      >
-                        <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="equal">Equal to</MenuItem>
-                        <MenuItem value="greater">Greater than</MenuItem>
-                        <MenuItem value="less">Less than</MenuItem>
-                      </Select>
-                      <TextField
-                        size="small"
-                        type="number"
-                        placeholder="Value"
-                        value={cumulativePopoverFilter.value}
-                        onChange={(e) =>
-                          setCumulativePopoverFilter((prev) => ({
-                            ...prev,
-                            value: e.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleCumulativeApply}
-                      >
-                        Apply
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={handleCumulativeClear}
-                      >
-                        Clear
-                      </Button>
-                    </Box>
-                  </Popover>
-                </TableCell>
-                <TableCell sx={{
-                  fontWeight: "600",
-                  backgroundColor: "#f8fafc",
-                  padding: "16px 32px",
-                  fontSize: "14px",
-                  color: "#475569",
-                  textTransform: "uppercase",
-                  position: "relative",
-                }}>
-                  <Box sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}>
                     <span>Current Sem</span>
                     <span>Rewards</span>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={handleCurrentSemOpen}
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      right: "-5px",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <FilterListIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
-                  <Popover
-                    open={Boolean(currentSemAnchorEl)}
-                    anchorEl={currentSemAnchorEl}
-                    onClose={handleCurrentSemClose}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  >
-                    <Box
-                      sx={{
-                        p: 2,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 1,
-                      }}
-                    >
-                      <Select
-                        size="small"
-                        value={currentSemPopoverFilter.type}
-                        onChange={(e) =>
-                          setCurrentSemPopoverFilter((prev) => ({
-                            ...prev,
-                            type: e.target.value,
-                          }))
-                        }
-                      >
-                        <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="equal">Equal to</MenuItem>
-                        <MenuItem value="greater">Greater than</MenuItem>
-                        <MenuItem value="less">Less than</MenuItem>
-                      </Select>
-                      <TextField
-                        size="small"
-                        type="number"
-                        placeholder="Value"
-                        value={currentSemPopoverFilter.value}
-                        onChange={(e) =>
-                          setCurrentSemPopoverFilter((prev) => ({
-                            ...prev,
-                            value: e.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleCurrentSemApply}
-                      >
-                        Apply
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={handleCurrentSemClear}
-                      >
-                        Clear
-                      </Button>
-                    </Box>
-                  </Popover>
                 </TableCell>
                 {skillColumns.map((skillCol) => (
                   <TableCell
@@ -1119,7 +873,7 @@ const Dash = () => {
                         <MenuItem value="" disabled>
                           <em>Select Skill</em>
                         </MenuItem>
-                        {availableSkills.map((skill) => (
+                        {courses.map((skill) => (
                           <MenuItem key={skill} value={skill}>
                             {skill}
                           </MenuItem>
@@ -1161,32 +915,9 @@ const Dash = () => {
               </tr>
             </thead>
             <tbody style={styles.tbody}>
-              {sortedStudents.map((student) => (
-                <tr
-                  key={student.id}
-                  style={styles.tr}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f8fafc";
-                    const completedBadge = e.currentTarget.querySelector(
-                      ".completed-badge-hover"
-                    );
-                    if (completedBadge) {
-                      completedBadge.style.backgroundColor = "#e3eefa";
-                      completedBadge.style.color = "#141313ff";
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "white";
-                    const completedBadge = e.currentTarget.querySelector(
-                      ".completed-badge-hover"
-                    );
-                    if (completedBadge) {
-                      completedBadge.style.backgroundColor = "#f6f7fb";
-                      completedBadge.style.color = "#4f46e5";
-                    }
-                  }}
-                >
-                  <td style={{ ...styles.td, padding: "16px 24px" }}>
+              {sortedMentees.map((mentee) => (
+                <tr key={mentee.id} style={styles.tr}>
+                  <td style={styles.td}>
                     <Button
                       variant="outlined"
                       sx={{
@@ -1195,29 +926,29 @@ const Dash = () => {
                         minWidth: 60,
                         minHeight: 36,
                         borderRadius: 2,
-                        borderColor: '#c7d2fe',
-                        background: '#f1f5ff',
-                        color: '#3b4cca',
+                        borderColor: "#c7d2fe",
+                        background: "#f1f5ff",
+                        color: "#3b4cca",
                         fontWeight: 600,
-                        fontSize: '14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mx: 'auto',
+                        fontSize: "1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        mx: "auto",
                         px: 0,
                         py: 0,
-                        cursor: 'pointer',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          background: '#e0e7ff',
-                          borderColor: '#a5b4fc',
-                          boxShadow: 'none',
+                        cursor: "pointer",
+                        boxShadow: "none",
+                        "&:hover": {
+                          background: "#e0e7ff",
+                          borderColor: "#a5b4fc",
+                          boxShadow: "none",
                         },
                       }}
                       onClick={() => setIsModalOpen(true)}
                       disableElevation
                     >
-                      {student.totalLevels}
+                      {mentee.totalLevels}
                     </Button>
                   </td>
                   <td style={styles.td}>
@@ -1229,73 +960,86 @@ const Dash = () => {
                         minWidth: 60,
                         minHeight: 36,
                         borderRadius: 2,
-                        borderColor: '#c7d2fe',
-                        background: '#f1f5ff',
-                        color: '#3b4cca',
+                        borderColor: "#c7d2fe",
+                        background: "#f1f5ff",
+                        color: "#3b4cca",
                         fontWeight: 600,
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mx: 'auto',
+                        fontSize: "1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        mx: "auto",
                         px: 0,
                         py: 0,
-                        cursor: 'pointer',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          background: '#e0e7ff',
-                          borderColor: '#a5b4fc',
-                          boxShadow: 'none',
+                        cursor: "pointer",
+                        boxShadow: "none",
+                        "&:hover": {
+                          background: "#e0e7ff",
+                          borderColor: "#a5b4fc",
+                          boxShadow: "none",
                         },
                       }}
                       onClick={() => setIsCompletedModalOpen(true)}
                       disableElevation
                     >
-                      {student.completedLevels}
+                      {mentee.completedLevels}
                     </Button>
                   </td>
-                  <td style={{ ...styles.td, whiteSpace: "nowrap", textAlign: "left" }}>
-                    <div style={styles.nameMain}>{student.name}</div>
+                  <td
+                    style={{
+                      ...styles.td,
+                      whiteSpace: "nowrap",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={styles.nameMain}>{mentee.name}</div>
                   </td>
-                  <td style={{ ...styles.td, textAlign: "left" }}>{student.regNo}</td>
-                  <td style={{ ...styles.td, ...styles.rewardPoints }}>
-                    {student.cumulativeRewards}
+                  <td style={{ ...styles.td, textAlign: "left" }}>
+                    {mentee.regNo}
+                  </td>
+                  <td
+                    style={{
+                      ...styles.td,
+                      ...styles.rewardPoints,
+                      textAlign: "center",
+                    }}
+                  >
+                    {mentee.cumulativeRewards}
                   </td>
                   <td
                     style={{
                       ...styles.td,
                       ...styles.rewardPoints,
                       minWidth: "200px",
+                      textAlign: "center",
                     }}
                   >
-                    {student.currentSemRewards}
+                    {mentee.currentSemRewards}
                   </td>
                   {skillColumns.map((skillCol) => {
                     const skillData =
-                      student.skills && student.skills[skillCol.skill];
+                      mentee.skills && mentee.skills[skillCol.skill];
+                    // If student hasn't attempted, render empty cell
                     if (!skillData)
                       return (
                         <td
                           key={skillCol.id}
                           style={{ ...styles.td, color: "#9ca3af" }}
                         >
-                          -
+                          {/* nothing */}
                         </td>
                       );
                     return (
                       <td key={skillCol.id} style={styles.td}>
                         <div style={styles.skillCell}>
-                          <span
-                            style={{
-                              ...styles.skillLevelText,
-                            }}
-                          >
-                            {`Level ${skillData.level}`}
+                          <span style={{ ...styles.skillLevelText }}>
+                            {`Level ${skillData.level ?? 0}`}
                           </span>
                           <span
                             style={{
                               ...styles.daysAgo,
-                              backgroundColor: getDaysColor(skillData.daysAgo).bg,
+                              backgroundColor: getDaysColor(skillData.daysAgo)
+                                .bg,
                               color: getDaysColor(skillData.daysAgo).text,
                               padding: "4px 8px",
                               borderRadius: "12px",
@@ -1308,7 +1052,7 @@ const Dash = () => {
                           >
                             {skillData.daysAgo === 999
                               ? "999d ago"
-                              : `${skillData.daysAgo}d ago`}
+                              : `${skillData.daysAgo ?? 0}d ago`}
                           </span>
                         </div>
                       </td>
@@ -1320,18 +1064,18 @@ const Dash = () => {
           </table>
         </div>
       </div>
-      
-      <TotalLevelsModal 
-        open={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+
+      <TotalLevelsModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
-      
-      <CompletedLevelsModal 
-        open={isCompletedModalOpen} 
-        onClose={() => setIsCompletedModalOpen(false)} 
+
+      <CompletedLevelsModal
+        open={isCompletedModalOpen}
+        onClose={() => setIsCompletedModalOpen(false)}
       />
     </div>
   );
 };
 
-export default Dash;
+export default MenteeDashboard;

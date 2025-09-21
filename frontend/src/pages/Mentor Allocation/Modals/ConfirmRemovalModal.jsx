@@ -20,6 +20,11 @@ const ConfirmRemovalModal = ({
   onConfirm,
   removalData
 }) => {
+  // Add null check to prevent errors
+  if (!removalData) {
+    return null;
+  }
+
   return (
     <Dialog 
       open={open} 
@@ -83,8 +88,8 @@ const ConfirmRemovalModal = ({
             mb: 2,
             lineHeight: 1.6
           }}>
-            Are you sure you want to remove <strong>{removalData.mentorName}</strong> as a mentor 
-            from <strong>{removalData.studentName}</strong>?
+            Are you sure you want to remove <strong>{removalData?.mentor?.name}</strong> as a mentor 
+            from <strong>{removalData?.student?.name}</strong>?
           </Typography>
           <Typography variant="body2" sx={{ 
             color: '#6b7280',

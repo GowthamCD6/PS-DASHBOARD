@@ -16,6 +16,8 @@ import { DashboardLayout, ThemeSwitcher } from '@toolpad/core/DashboardLayout';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import {
   Account,
   AccountPreview,
@@ -28,6 +30,11 @@ import logo from '../assets/logo.png';
 
 
 const NAVIGATION = [
+  {
+    segment: 'view-analytics',
+    title: 'Analytics',
+    icon: <AnalyticsIcon />,
+  },
   {
     segment: 'dashboard',
     title: 'Dashboard',
@@ -42,6 +49,11 @@ const NAVIGATION = [
     segment: 'mentor',
     title: 'mentor allocation',
     icon: <SupervisedUserCircleIcon />,
+  },
+  {
+    segment: 'mapping',
+    title: 'Mentor Mapping',
+    icon: <AccountTreeIcon />,
   },
   // {
   //   segment:'student_dashboard',
