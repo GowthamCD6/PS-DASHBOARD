@@ -66,7 +66,7 @@ const Login = () => {
       const data = await parseJSONSafe(resp);
 
       if (resp.status == 200) {
-        navigate("/dashboard");
+        navigate("/view-analytics");
         console.log('hi')
       } else {
         setLoginError(data.message || "Login failed");

@@ -17,7 +17,7 @@ function App() {
         <Routes>
           {/* Public login routes */}
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/view-analytics" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Dashboard routes */}
           <Route path="/*" element={<DashboardRoutes />} />
