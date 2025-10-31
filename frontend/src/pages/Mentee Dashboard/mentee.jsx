@@ -445,6 +445,7 @@ const MenteeDashboard = () => {
     },
     thead: {
       backgroundColor: "#f8fafc",
+      width: "100%",
       borderBottom: "1px solid #e2e8f0",
     },
     tbody: {
